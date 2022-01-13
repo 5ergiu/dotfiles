@@ -25,12 +25,13 @@
     // To learn more about profiles, visit https://aka.ms/terminal-profile-settings
     "profiles":
     {
-         "defaults":
+        "defaults":
         {
             // Put settings here that you want to apply to all profiles.
             "colorScheme": "blue_purple",
             "fontFace": "UbuntuMono Nerd Font",
-            "fontSize": 12,
+            "fontSize": 13,
+            "fontWeight": "bold",
             "historySize": 12000,
             "scrollbarState": "visible",
             "useAcrylic": true,
