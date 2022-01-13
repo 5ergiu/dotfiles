@@ -25,19 +25,34 @@
     // To learn more about profiles, visit https://aka.ms/terminal-profile-settings
     "profiles":
     {
-        "defaults":
+         "defaults":
         {
             // Put settings here that you want to apply to all profiles.
-            "colorScheme": "xcad_tdl",
+            "colorScheme": "blue_purple",
             "fontFace": "UbuntuMono Nerd Font",
             "fontSize": 12,
             "historySize": 12000,
-            "opacity": 95,
             "scrollbarState": "visible",
-            "useAcrylic": false
+            "useAcrylic": true,
+            "acrylicOpacity": 0.9
         },
         "list":
         [
+            {
+                "name": "DEV GCSLegacy VPS SSH",
+                "tabTitle": "DEV GCSLegacy VPS",
+                "commandline": "wsl ssh sergiu@dev-legacy.westeurope.cloudapp.azure.com"
+            },
+            {
+                "name": "TEST GCSLegacy VPS SSH",
+                "tabTitle": "TEST GCSLegacy VPS",
+                "commandline": "wsl ssh sergiu@test-legacy.westeurope.cloudapp.azure.com"
+            },
+            {
+                "name": "PROD GCSLegacy VPS SSH",
+                "tabTitle": "PROD GCSLegacy VPS",
+                "commandline": "wsl ssh sergiu@prod-legacy.westeurope.cloudapp.azure.com"
+            },
             {
                 // Make changes here to the powershell.exe profile.
                 "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
