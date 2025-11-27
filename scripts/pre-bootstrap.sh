@@ -143,16 +143,3 @@ if ! yadm clone "$DOTFILES_REPO" --bootstrap; then
     print_error "Failed to clone dotfiles repository"
     exit 1
 fi
-
-# =============================================================================
-# Completion
-# =============================================================================
-
-print_header "✨ Pre-Bootstrap Complete!"
-
-echo -e "${GREEN}${BOLD}Your dotfiles are now set up!${RESET}\n"
-echo -e "${CYAN}📝 What was done:${RESET}"
-echo -e "  ${GREEN}✓${RESET} Homebrew installed"
-echo -e "  ${GREEN}✓${RESET} yadm installed"
-echo -e "  ${GREEN}✓${RESET} Dotfiles cloned and bootstrapped"
-echo ""
