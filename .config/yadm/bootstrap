@@ -160,25 +160,7 @@ fi
 print_success "zsh configuration found"
 
 # ======================================================================
-# STEP 4: Configuration
-# ======================================================================
-
-print_step "Configuring Git..."
-
-if ! git config --global user.name >/dev/null 2>&1; then
-    read -rp "Enter your Git user name: " git_user_name
-    git config --global user.name "$git_user_name"
-fi
-
-if ! git config --global user.email >/dev/null 2>&1; then
-    read -rp "Enter your Git email: " git_user_email
-    git config --global user.email "$git_user_email"
-fi
-
-print_success "Git user.name and user.email configured."
-
-# ======================================================================
-# STEP 5: Kubernetes Configuration Setup
+# STEP 4: Kubernetes Configuration Setup
 # ======================================================================
 
 print_step "Setting up Kubernetes configuration directory..."
@@ -206,7 +188,7 @@ done
 print_success "Kubernetes configuration files initialized"
 
 # ======================================================================
-# STEP 6: Optional - Local Kubernetes Cluster Setup
+# STEP 5: Optional - Local Kubernetes Cluster Setup
 # ======================================================================
 
 # Track k3s setup status for completion message
