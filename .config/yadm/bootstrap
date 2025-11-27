@@ -94,7 +94,17 @@ fi
 print_info "Installing packages via Homebrew Bundle..."
 
 # Install packages from Brewfile
-brew bundle --file="./Brewfile" --no-lock
+if [ -f "$HOME/.config/yadm/Brewfile" ]; then
+    if brew bundle --file="$HOME/.config/yadm/Brewfile" --no-upgrade; then
+        print_success "All Brewfile packages installed successfully"
+    else
+        print_error "Some packages failed to install (this might be normal for WSL)"
+        print_info "Check the output above for details"
+    fi
+else
+    print_error "Brewfile not found at $HOME/.config/yadm/Brewfile"
+    exit 1
+fi
 
 # ============================================================================
 # STEP 3: Zsh Installation and Setup
