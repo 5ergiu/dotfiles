@@ -90,10 +90,6 @@ The yadm bootstrap script (`.config/yadm/bootstrap`) automatically:
 - Adds zsh to `/etc/shells` if needed
 - Verifies `.zshrc` configuration exists
 
-#### Git Configuration
-- Prompts for Git user.name and user.email if not configured
-- Sets global Git configuration
-
 #### Optional Features
 - Interactive k3s cluster setup (if k3sup is installed)
 - Custom context name support
