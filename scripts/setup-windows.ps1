@@ -151,6 +151,35 @@ Ask-Apply "Disable Windows Error Reporting?" {
 #     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
 # }
 
+# Install Hack Nerd Font
+Write-Host "→ Installing Hack Nerd Font..." -ForegroundColor Cyan
+
+$fontUrl = "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.zip"
+$zipPath = "$env:TEMP\HackNerdFont.zip"
+$extractPath = "$env:TEMP\HackNerdFont"
+
+try {
+    Invoke-WebRequest -Uri $fontUrl -OutFile $zipPath -UseBasicParsing
+    Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
+
+    # Install all TTF font files inside the zip
+    $shellApp = New-Object -ComObject Shell.Application
+    $fontsFolder = $shellApp.Namespace("$env:WINDIR\Fonts")
+
+    Get-ChildItem -Path $extractPath -Filter *.ttf | ForEach-Object {
+        $fontsFolder.CopyHere($_.FullName, 16)
+    }
+
+    Write-Host "✓ Hack Nerd Font installed successfully." -ForegroundColor Green
+}
+catch {
+    Write-Host "✗ Failed to install Hack Nerd Font: $_" -ForegroundColor Red
+}
+
+# Cleanup
+Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+Remove-Item $extractPath -Recurse -Force -ErrorAction SilentlyContinue
+
 Write-Host "✓ System configuration complete!" -ForegroundColor Green
 
 # ---------------------------
