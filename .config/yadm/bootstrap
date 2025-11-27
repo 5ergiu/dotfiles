@@ -247,11 +247,6 @@ fi
 print_header "✨ Bootstrap Complete!"
 
 echo -e "${GREEN}${BOLD}All steps completed successfully!${RESET}\n"
-echo -e "${CYAN}📝 Next steps:${RESET}"
-echo -e "  ${BLUE}1.${RESET} Restart your shell or run: ${YELLOW}exec zsh${RESET}"
-echo -e "  ${BLUE}2.${RESET} Or log out and log back in for shell changes to take effect"
-echo -e "  ${BLUE}3.${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
-echo -e "  ${BLUE}4.${RESET} Check the log file: ${YELLOW}$LOG_FILE${RESET}"
 
 if [ "$K3S_SETUP_STATUS" = "installed" ]; then
     echo -e "\n${CYAN}☸️  Kubernetes cluster:${RESET}"
@@ -262,6 +257,13 @@ elif [ "$K3S_SETUP_STATUS" = "skipped" ]; then
     echo -e "\n${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
     echo -e "  ${BLUE}•${RESET} Run: ${YELLOW}k3sup install --local --local-path ~/.kube/config.local --merge --context <name>${RESET}"
 fi
+
+echo -e ""
+echo -e "${CYAN}📝 Next steps:${RESET}"
+echo -e "  ${BLUE}1.${RESET} Restart your shell or run: ${YELLOW}exec zsh${RESET}"
+echo -e "  ${BLUE}2.${RESET} Or log out and log back in for shell changes to take effect"
+echo -e "  ${BLUE}3.${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
+echo -e "  ${BLUE}4.${RESET} Check the log file: ${YELLOW}$LOG_FILE${RESET}"
 
 echo ""
 echo -e "${CYAN}🎉 Happy coding!${RESET}\n"
