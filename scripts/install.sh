@@ -74,16 +74,21 @@ else
     print_info "Installing Homebrew..."
 
     if [ "$OS" = "Linux" ]; then
-        if [ ! -w /home/linuxbrew/.linuxbrew ] && [ ! -w /home/linuxbrew ]; then
+         print_info "Installing required Linux packages for Homebrew..."
+        
+        if command -v sudo >/dev/null 2>&1; then
+            sudo apt update
+            sudo apt install -y build-essential procps curl file git
+            print_success "Linux dependencies installed"
+        else
+            print_error "sudo not available. Cannot install Linux dependencies"
+            exit 1
+        fi
+    
+        if [ ! -w /home/linuxbrew/.linuxbrew ] && [ ! -w /home/linuxbrew ]; then        
             print_info "Setting up Homebrew directory permissions..."
-
-            if command -v sudo >/dev/null 2>&1; then
-                sudo mkdir -p /home/linuxbrew/.linuxbrew
-                sudo chown -R $USER:$USER /home/linuxbrew/.linuxbrew
-            else
-                print_error "sudo not available. Cannot setup Homebrew directory permissions"
-                exit 1
-            fi
+            sudo mkdir -p /home/linuxbrew/.linuxbrew
+            sudo chown -R $USER:$USER /home/linuxbrew/.linuxbrew
         fi
     fi
     
