@@ -190,12 +190,19 @@ if (-not $wslInstalled) {
         dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
 
         Write-Host "→ Installing WSL..." -ForegroundColor Cyan
-        wsl --install --no-distribution
+        wsl --install -d Ubuntu
 
         Write-Host "✓ WSL has been installed." -ForegroundColor Green
     }
 } else {
     Write-Host "✓ WSL is already installed." -ForegroundColor Green
+
+    $installUbuntu = Read-Host "Do you want to install/update the latest Ubuntu distribution? (Y/N)"
+    if ($installUbuntu -eq 'Y' -or $installUbuntu -eq 'y') {
+        Write-Host "→ Installing latest Ubuntu..." -ForegroundColor Cyan
+        wsl --install -d Ubuntu
+        Write-Host "✓ Latest Ubuntu has been installed." -ForegroundColor Green
+    }
 }
 
 
