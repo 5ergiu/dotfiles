@@ -215,12 +215,6 @@ if command -v k3sup >/dev/null 2>&1; then
                 print_success "Cluster is ready!"
                 kubectl --context="local" --kubeconfig="$HOME/.kube/config" get nodes
 
-                # Merge kubeconfig files
-                if [ -x "$HOME/scripts/kube-merge" ]; then
-                    print_info "Merging kubeconfig files..."
-                    "$HOME/scripts/kube-merge"
-                fi
-
                 K3S_SETUP_STATUS="installed"
             fi
         else
