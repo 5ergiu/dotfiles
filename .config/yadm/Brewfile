@@ -20,7 +20,7 @@ brew "neovim"
 # Development tools
 brew "python@3.14"
 brew "node@24"
-brew "bun"
+brew "oven-sh/bun/bun"
 brew "yarn"
 brew "pnpm"
 
