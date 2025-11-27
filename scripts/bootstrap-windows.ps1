@@ -153,7 +153,20 @@ Ask-Apply "Disable Windows Error Reporting?" {
 
 # Hack Nerd Font
 $fontsFolder = "$env:WINDIR\Fonts"
-$hackFontInstalled = Get-ChildItem -Path $fontsFolder -Filter "*Hack*Nerd*Font*.ttf" -ErrorAction SilentlyContinue
+$fontPatterns = @(
+    "*Hack*Nerd*Font*.ttf",
+    "*HackNerdFont*.ttf",
+    "*Hack NF*.ttf",
+    "*Hack*.ttf" # fallback (Hack only + Nerd patched)
+)
+
+$hackFontInstalled = $false
+foreach ($pattern in $fontPatterns) {
+    if (Get-ChildItem -Path $fontsFolder -Filter $pattern -ErrorAction SilentlyContinue) {
+        $hackFontInstalled = $true
+        break
+    }
+}
 
 if ($hackFontInstalled) {
     Write-Host "✓ Hack Nerd Font is already installed." -ForegroundColor Green
@@ -170,10 +183,11 @@ if ($hackFontInstalled) {
 
         # Install all TTF font files inside the zip
         $shellApp = New-Object -ComObject Shell.Application
-        $fontsFolderShell = $shellApp.Namespace("$env:WINDIR\Fonts")
+        $fontsFolderShell = $shellApp.Namespace($fontsFolder)
 
-        Get-ChildItem -Path $extractPath -Filter *.ttf | ForEach-Object {
-            $fontsFolderShell.CopyHere($_.FullName, 0x10 + 0x4)
+        Get-ChildItem -Path $extractPath -Filter "*.ttf" | ForEach-Object {
+            Write-Host "→ Installing font: $($_.Name)" -ForegroundColor Cyan
+            $fontsFolderShell.CopyHere($_.FullName, 0x10 + 0x4)  # 0x10=No UI, 0x4=Yes to All
         }
 
         Write-Host "✓ Hack Nerd Font installed successfully." -ForegroundColor Green
