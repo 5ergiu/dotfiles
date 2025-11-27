@@ -152,9 +152,6 @@ Ask-Apply "Disable Windows Error Reporting?" {
 # }
 
 Write-Host "✓ System configuration complete!" -ForegroundColor Green
-Write-Host "▶ Restarting Explorer to apply changes..." -ForegroundColor Green
-Stop-Process -Name explorer -Force
-Start-Sleep -Seconds 2
 
 # ---------------------------
 # 2. WSL SETUP
