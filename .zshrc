@@ -30,16 +30,6 @@ export PATH="$HOME/.local/bin:$HOME/scripts:$PATH"
 # Set KUBECONFIG to include all environment configs
 if [ -f "$HOME/.kube/config" ]; then
     export KUBECONFIG="$HOME/.kube/config"
-elif [ -d "$HOME/.kube" ]; then
-    # Fallback to individual configs if merged doesn't exist
-    # Dynamically find all config.* files
-    KUBE_CONFIGS=""
-    for config_file in "$HOME/.kube"/config.*; do
-        if [ -f "$config_file" ] && [[ "$config_file" != *.backup ]]; then
-            KUBE_CONFIGS="${KUBE_CONFIGS:+$KUBE_CONFIGS:}$config_file"
-        fi
-    done
-    [ -n "$KUBE_CONFIGS" ] && export KUBECONFIG="$KUBE_CONFIGS"
 fi
 
 # Expand the history size
