@@ -129,13 +129,17 @@ if [ "$CURRENT_SHELL" != "zsh" ]; then
     fi
     
     # Change default shell
-    print_info "Changing default shell to zsh..."
-    if chsh -s "$ZSH_PATH" 2>/dev/null; then
-        print_success "Default shell changed to zsh"
-        print_warning "Please log out and log back in for the shell change to take effect"
+    if command -v sudo >/dev/null 2>&1; then
+        if sudo usermod -s "$ZSH_PATH" "$USER"; then
+            print_success "Default shell changed to zsh"
+            print_warning "Please log out and log back in for the shell change to take effect"
+        else
+            print_error "Failed to change default shell to zsh via usermod"
+            print_error "Please run manually: chsh -s $ZSH_PATH"
+            exit 1
+        fi
     else
-        print_error "Failed to change default shell to zsh"
-        print_error "Please run manually: chsh -s $ZSH_PATH"
+        print_error "sudo not available. Cannot change default shell automatically"
         exit 1
     fi
 else
