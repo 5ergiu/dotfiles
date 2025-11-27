@@ -21,6 +21,9 @@ fi
 # EXPORTS
 # ============================================================================
 
+# GPG TTY for proper passphrase prompts
+export GPG_TTY=$(tty)
+
 # Add custom paths to PATH
 export PATH="$HOME/.local/bin:$HOME/scripts:$PATH"
 
@@ -54,9 +57,6 @@ setopt SHARE_HISTORY
 # Set the default editor
 export EDITOR=nvim
 export VISUAL=nvim
-alias vim='nvim'
-alias nano='nvim'
-alias pico='nvim'
 
 # ============================================================================
 # ZSH CONFIGURATION

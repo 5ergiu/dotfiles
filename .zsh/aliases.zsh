@@ -4,6 +4,11 @@
 
 alias help='showhelp'
 
+# Editors
+alias vim='nvim'
+alias nano='nvim'
+alias pico='nvim'
+
 # Eza (ls replacement)
 alias ls='eza --icons --git'
 alias ll='eza --icons --git -l'
