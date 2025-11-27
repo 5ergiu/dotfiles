@@ -169,10 +169,18 @@ print_step "Setting up Kubernetes configuration directory..."
 mkdir -p "$HOME/.kube"
 print_success ".kube directory created"
 
-# Create placeholder config files if they don't exist
-if [ ! -f "$HOME/.kube/config" ]; then
-    print_info "Creating placeholder: $HOME/.kube/config"
-    /bin/cat > "$HOME/.kube/config" << 'EOF'
+KUBECONFIG_FILE="$HOME/.kube/config"
+
+# If kubeconfig exists, back it up, if not, create placeholder
+if [ -f "$KUBECONFIG_FILE" ]; then
+    echo -e "\n${BLUE}📦 Backing up existing config...${RESET}"
+    BACKUP_FILE="$KUBECONFIG_FILE.backup.$(date +%Y%m%d-%H%M%S)"
+    cp "KUBECONFIG_FILE" "$BACKUP_FILE"
+    echo -e "${GREEN}✓${RESET} Backup created: $BACKUP_FILE"
+else
+    print_info "Creating placeholder: $KUBECONFIG_FILE"
+    mkdir -p "$HOME/.kube"
+    /bin/cat > "$KUBECONFIG_FILE" << 'EOF'
 apiVersion: v1
 kind: Config
 clusters: []
