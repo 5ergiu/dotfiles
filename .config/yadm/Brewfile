@@ -27,6 +27,7 @@ brew "pnpm"
 # DevOps & Infrastructure
 brew "ansible"
 brew "ansible-lint"
+brew "azure-cli"
 brew "docker"
 brew "opentofu"
 brew "hashicorp/tap/packer"
