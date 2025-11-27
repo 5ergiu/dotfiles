@@ -64,7 +64,7 @@ This repository also serves as a dotfiles manager using [yadm](https://yadm.io/)
 Install prerequisites (Homebrew & yadm) and clone dotfiles in one command:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/scripts/pre-bootstrap.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/scripts/install.sh)
 ```
 
 This script will:
