@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+# ============================================================================
+# YADM Bootstrap Script
+# ============================================================================
+# This script bootstraps the user's environment by installing necessary
+# tools and configurations using Homebrew and other utilities.
+# It is intended to be run as part of the YADM dotfiles management system.
+# ============================================================================
+
+set -euo pipefail
+
+# Color definitions
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly MAGENTA='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly BOLD='\033[1m'
+readonly RESET='\033[0m'
+
+# Log file
+readonly LOG_FILE="$HOME/.config/yadm/bootstrap.log"
+readonly TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+
+# ============================================================================
+# LOGGING FUNCTIONS
+# ============================================================================
+
+log() {
+    echo "[${TIMESTAMP}] $1" >> "$LOG_FILE"
+}
+
+print_header() {
+    echo -e "\n${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+    echo -e "${BOLD}${CYAN}$1${RESET}"
+    echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
+    log "=== $1 ==="
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${RESET}"
+    log "SUCCESS: $1"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ️ $1${RESET}"
+    log "INFO: $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️ $1${RESET}"
+    log "WARNING: $1"
+}
+
+print_error() {
+    echo -e "${RED}❌ $1${RESET}"
+    log "ERROR: $1"
+}
+
+print_step() {
+    echo -e "${MAGENTA}🔧 $1${RESET}"
+    log "STEP: $1"
+}
+
+# ============================================================================
+# MAIN BOOTSTRAP
+# ============================================================================
+
+print_header "🚀 YADM Bootstrap Starting"
+
+echo "=== Bootstrap started at ${TIMESTAMP} ===" > "$LOG_FILE"
+
+# ============================================================================
+# STEP 1: OS Verification
+# ============================================================================
+
+print_step "Verifying operating system..."
+
+OS=$(uname -s)
+ARCH=$(uname -m)
+print_info "Operating System: $OS"
+print_info "Architecture: $ARCH"
+
+if [ "$OS" != "Darwin" ] && [ "$OS" != "Linux" ]; then
+    print_error "Unsupported OS: $OS. This bootstrap script only supports Linux and macOS."
+    exit 1
+fi
+
+# ============================================================================
+# STEP 2: Install packages via Homebrew
+# ============================================================================
+
+print_info "Installing packages via Homebrew Bundle..."
+
+# Install packages from Brewfile
+brew bundle --file="./Brewfile" --no-lock
+
+# ============================================================================
+# STEP 3: Zsh Installation and Setup
+# ============================================================================
+
+print_step "Shell configuration with zsh..."
+
+# Check if zsh is the default shell
+CURRENT_SHELL=$(basename "$SHELL" 2>/dev/null || echo "unknown")
+print_info "Current shell: $CURRENT_SHELL"
+
+if [ "$CURRENT_SHELL" != "zsh" ]; then
+    print_warning "zsh is not the default shell. Attempting to change default shell..."
+    
+    ZSH_PATH=$(command -v zsh)
+    print_info "zsh path: $ZSH_PATH"
+    
+    # Check if zsh is in /etc/shells
+    if ! grep -q "^${ZSH_PATH}$" /etc/shells 2>/dev/null; then
+        print_warning "Adding zsh to /etc/shells..."
+        if command -v sudo >/dev/null 2>&1; then
+            echo "$ZSH_PATH" | sudo tee -a /etc/shells >/dev/null
+        else
+            print_error "sudo not available. Cannot add zsh to /etc/shells"
+            exit 1
+        fi
+    fi
+    
+    # Change default shell
+    print_info "Changing default shell to zsh..."
+    if chsh -s "$ZSH_PATH" 2>/dev/null; then
+        print_success "Default shell changed to zsh"
+        print_warning "Please log out and log back in for the shell change to take effect"
+    else
+        print_error "Failed to change default shell to zsh"
+        print_error "Please run manually: chsh -s $ZSH_PATH"
+        exit 1
+    fi
+else
+    print_success "zsh is already the default shell"
+fi
+
+# Verify zsh configuration exists
+if [ ! -f "$HOME/.zshrc" ]; then
+    print_error ".zshrc not found - zsh configuration is required"
+    print_error "Please ensure your dotfiles include .zshrc"
+    exit 1
+fi
+
+print_success "zsh configuration found"
+
+# ======================================================================
+# STEP 4: Configuration
+# ======================================================================
+
+print_step "Configuring Git..."
+
+if ! git config --global user.name >/dev/null 2>&1; then
+    read -rp "Enter your Git user name: " git_user_name
+    git config --global user.name "$git_user_name"
+fi
+
+if ! git config --global user.email >/dev/null 2>&1; then
+    read -rp "Enter your Git email: " git_user_email
+    git config --global user.email "$git_user_email"
+fi
+
+print_success "Git user.name and user.email configured."
+
+# ======================================================================
+# STEP 5: Kubernetes Configuration Setup
+# ======================================================================
+
+print_step "Setting up Kubernetes configuration directory..."
+
+# Create .kube directory if it doesn't exist
+mkdir -p "$HOME/.kube"
+print_success ".kube directory created"
+
+# Create placeholder config files if they don't exist
+for config_file in "$HOME/.kube/config" "$HOME/.kube/config.local" "$HOME/.kube/config.dev" "$HOME/.kube/config.prod"; do
+    if [ ! -f "$config_file" ]; then
+        print_info "Creating placeholder: $config_file"
+        /bin/cat > "$config_file" << 'EOF'
+apiVersion: v1
+kind: Config
+clusters: []
+contexts: []
+current-context: ""
+preferences: {}
+users: []
+EOF
+    fi
+done
+
+print_success "Kubernetes configuration files initialized"
+
+# ======================================================================
+# STEP 6: Optional - Local Kubernetes Cluster Setup
+# ======================================================================
+
+# Track k3s setup status for completion message
+K3S_SETUP_STATUS="not_available"
+
+if command -v k3sup >/dev/null 2>&1; then
+    print_step "Local Kubernetes cluster setup (optional)"
+    
+    read -rp "$(echo -e "${CYAN}Would you like to setup a local k3s cluster? (y/N): ${RESET}")" setup_k3s
+    
+    if [[ "$setup_k3s" =~ ^[Yy]$ ]]; then
+        print_info "Setting up local k3s cluster..."
+        
+        # Ask for context name
+        print_info "Using context name: local"
+        
+        # Install k3s locally
+        print_info "Installing k3s cluster..."
+        if k3sup install --local --local-path "$HOME/.kube/config.local" --merge --context "local"; then
+            print_success "Local k3s cluster installed successfully!"
+            print_info "Kubeconfig: $HOME/.kube/config.local"
+            
+            # Wait for cluster to be ready
+            print_info "Waiting for cluster to be ready..."
+            if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config.local"; then
+                print_success "Cluster is ready!"
+                kubectl --context="local" --kubeconfig="$HOME/.kube/config.local" get nodes
+
+                # Merge kubeconfig files
+                if [ -x "$HOME/scripts/kube-merge" ]; then
+                    print_info "Merging kubeconfig files..."
+                    "$HOME/scripts/kube-merge"
+                fi
+
+                K3S_SETUP_STATUS="installed"
+            fi
+        else
+            print_error "Failed to install k3s cluster"
+            K3S_SETUP_STATUS="failed"
+        fi
+    else
+        print_info "Skipping k3s cluster setup"
+        K3S_SETUP_STATUS="skipped"
+    fi
+fi
+
+# ============================================================================
+# COMPLETION
+# ============================================================================
+
+print_header "✨ Bootstrap Complete!"
+
+echo -e "${GREEN}${BOLD}All steps completed successfully!${RESET}\n"
+echo -e "${CYAN}📝 Next steps:${RESET}"
+echo -e "  ${BLUE}1.${RESET} Restart your shell or run: ${YELLOW}exec zsh${RESET}"
+echo -e "  ${BLUE}2.${RESET} Or log out and log back in for shell changes to take effect"
+echo -e "  ${BLUE}3.${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
+echo -e "  ${BLUE}4.${RESET} Check the log file: ${YELLOW}$LOG_FILE${RESET}"
+
+if [ "$K3S_SETUP_STATUS" = "installed" ]; then
+    echo -e "\n${CYAN}☸️  Kubernetes cluster:${RESET}"
+    echo -e "  ${GREEN}✓${RESET} Local k3s cluster is ready"
+    echo -e "  ${BLUE}•${RESET} Use ${YELLOW}kubectl --context=local${RESET} to interact with your cluster"
+    echo -e "  ${BLUE}•${RESET} Or switch context: ${YELLOW}kubectx local${RESET}"
+elif [ "$K3S_SETUP_STATUS" = "skipped" ]; then
+    echo -e "\n${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
+    echo -e "  ${BLUE}•${RESET} Run: ${YELLOW}k3sup install --local --local-path ~/.kube/config.local --merge --context <name>${RESET}"
+fi
+
+echo ""
+echo -e "${CYAN}🎉 Happy coding!${RESET}\n"

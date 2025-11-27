@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.bak
+*.log
+
+# Kubernetes - NEVER commit actual kubeconfig files
+.kube/config
+.kube/config.*
+!.kube/config.local
+.kube/*.backup
+
+# SSH Keys - NEVER commit private keys
+.ssh/id_*
+.ssh/*.pem
+.ssh/*.key
+!.ssh/*.pub
+!.ssh/config
+
+# GPG Keys
+.gnupg/*.key
+.gnupg/private-keys-v1.d/
+.gnupg/openpgp-revocs.d/
+.gnupg/secring.*
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+*.secret
+secrets/
+
+# AWS credentials
+.aws/credentials
+.aws/config
+
+# Docker
+.docker/config.json
+
+# Shell history (may contain sensitive commands)
+.zsh_history
+.bash_history
+.history
+
+# YADM
+.config/yadm/encrypt
+
+# Cache directories
+.cache/
+*.cache
+
+# Local development
+node_modules/
+vendor/
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraformrc
+terraform.rc

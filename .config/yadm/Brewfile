@@ -1,0 +1,54 @@
+# ============================================================================
+# Homebrew Bundle File
+# ============================================================================
+
+# Taps
+tap "oven-sh/bun"
+
+# Shell
+brew "zsh"
+
+# Core command-line tools
+brew "curl"
+brew "wget"
+brew "git"
+brew "jq"
+
+# Editors
+brew "neovim"
+
+# Development tools
+brew "python@3.14"
+brew "node@24"
+brew "bun"
+
+# DevOps & Infrastructure
+brew "ansible"
+brew "ansible-lint"
+brew "docker"
+brew "opentofu"
+brew "packer"
+brew "terraform"
+
+# Container orchestration tools
+brew "kubernetes-cli"
+brew "helm"
+brew "helmfile"
+brew "k3sup"
+brew "k9s"
+brew "kubectx"
+brew "lazydocker"
+
+# GitHub CLI
+brew "gh"
+
+# CLI tools
+brew "bat"
+brew "btop"
+brew "eza"
+brew "fd"
+brew "fzf"
+brew "ripgrep"
+brew "starship"
+brew "superfile"
+brew "zoxide"
