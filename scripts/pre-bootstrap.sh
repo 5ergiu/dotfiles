@@ -76,8 +76,14 @@ else
     if [ "$OS" = "Linux" ]; then
         if [ ! -w /home/linuxbrew/.linuxbrew ] && [ ! -w /home/linuxbrew ]; then
             print_info "Setting up Homebrew directory permissions..."
-            sudo mkdir -p /home/linuxbrew/.linuxbrew
-            sudo chown -R $USER:$USER /home/linuxbrew/.linuxbrew
+
+            if command -v sudo >/dev/null 2>&1; then
+                sudo mkdir -p /home/linuxbrew/.linuxbrew
+                sudo chown -R $USER:$USER /home/linuxbrew/.linuxbrew
+            else
+                print_error "sudo not available. Cannot setup Homebrew directory permissions"
+                exit 1
+            fi
         fi
     fi
     
