@@ -78,9 +78,6 @@ alias kgpl='kubectl get pods -l'
 # Watch pods
 alias kwp='watch kubectl get pods'
 
-# Merge kubeconfig files
-alias km='kube-merge'
-
 # Helm aliases
 alias h='helm'
 alias hls='helm list'
@@ -213,7 +210,6 @@ showhelp() {
         echo "  ka               - kubectl apply -f"
         echo "  kpf              - kubectl port-forward"
         echo "  kwp              - watch kubectl get pods"
-        echo "  km               - kube-merge (merge kubeconfig files)"
         echo ""
         echo "🔧 Functions:"
         echo "  klogs <app> [ns]              - Get logs by app name"
