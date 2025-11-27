@@ -4,6 +4,28 @@
 
 alias help='showhelp'
 
+# Brew (Homebrew package manager)
+alias b='brew'
+alias bi='brew install'
+alias bu='brew update'
+alias bup='brew upgrade'
+alias bdl='brew list'
+alias brm='brew uninstall'
+alias bsearch='brew search'
+alias binfo='brew info'
+
+# Yadm (dotfiles manager)
+alias y='yadm'
+alias ya='yadm add'
+alias yc='yadm commit -m'
+alias yp='yadm push'
+alias ypl='yadm pull'
+alias yst='yadm status'
+alias yd='yadm decrypt'
+alias ye='yadm encrypt'
+alias yls='yadm list'
+alias ydiff='yadm diff'
+
 # Editors
 alias vim='nvim'
 
@@ -145,19 +167,6 @@ alias gb='git branch'
 alias gba='git branch -a'
 alias gr='git remote -v'
 
-
-
-
-
-
-
-
-# ============================================================================
-# COMBINED HELPER FUNCTIONS
-# ============================================================================
-
-
-
 # ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
@@ -184,6 +193,47 @@ showhelp() {
         echo ""
         echo "💡 Tip: Use 'help <category>' to filter commands"
         echo "   Categories: kubernetes|k8s, helm, docker, custom"
+        echo ""
+    fi
+
+    # Brew section
+    if [ "$category" = "all" ] || [ "$category" = "brew" ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "🍺 HOMEBREW"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "📋 Brew Aliases:"
+        echo "  b           - brew"
+        echo "  bi          - brew install"
+        echo "  bu          - brew update"
+        echo "  bup         - brew upgrade"
+        echo "  bdl         - brew list"
+        echo "  brm         - brew uninstall"
+        echo "  bsearch     - brew search"
+        echo "  binfo       - brew info"
+        echo ""
+    fi
+
+    # Yadm section
+    if [ "$category" = "all" ] || [ "$category" = "yadm" ]; then
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo "📦 YADM (Dotfiles Manager)"
+        echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+        echo ""
+        echo "📋 Yadm Aliases:"
+        echo "  y           - yadm"
+        echo "  ya          - yadm add"
+        echo "  yc          - yadm commit -m"
+        echo "  yp          - yadm push"
+        echo "  ypl         - yadm pull"
+        echo "  yst         - yadm status"
+        echo "  yd          - yadm decrypt"
+        echo "  ye          - yadm encrypt"
+        echo "  yls         - yadm list"
+        echo "  ydiff       - yadm diff"
+        echo ""
+        echo "🔧 Helper Functions:"
+        echo "  ybackup     - Encrypt all changes and push to remote"
         echo ""
     fi
     
