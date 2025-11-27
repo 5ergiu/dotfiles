@@ -273,8 +273,8 @@ fi
 echo -e ""
 echo -e "${CYAN}📝 Next steps:${RESET}"
 echo -e "  ${BLUE}1.${RESET} Restart your shell in order for all changes to take effect"
-echo -e "  ${BLUE}2.${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
-echo -e "  ${BLUE}3.${RESET} Check the log file: ${YELLOW}$LOG_FILE${RESET}"
+echo -e "  ${BLUE}2.${RESET} Run ${YELLOW}yadm decrypt${RESET} to restore all encrypted files (SSH keys, passwords, and other secrets)"
+echo -e "  ${BLUE}3.${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
 
 echo ""
 echo -e "${CYAN}🎉 Happy coding!${RESET}\n"
