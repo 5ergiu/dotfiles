@@ -72,6 +72,14 @@ if command -v brew >/dev/null 2>&1; then
     BREW_PREFIX=$(brew --prefix)
 else
     print_info "Installing Homebrew..."
+
+    if [ "$OS" = "Linux" ]; then
+        if [ ! -w /home/linuxbrew/.linuxbrew ] && [ ! -w /home/linuxbrew ]; then
+            print_info "Setting up Homebrew directory permissions..."
+            sudo mkdir -p /home/linuxbrew/.linuxbrew
+            sudo chown -R $USER:$USER /home/linuxbrew/.linuxbrew
+        fi
+    fi
     
     # Install Homebrew non-interactively
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
