@@ -5,14 +5,15 @@
 # Taps
 tap "oven-sh/bun"
 
-# Shell
-brew "zsh"
-
 # Core command-line tools
 brew "curl"
 brew "wget"
 brew "git"
+brew "gcc"
 brew "jq"
+
+# Shell
+brew "zsh"
 
 # Editors
 brew "neovim"
