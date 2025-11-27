@@ -152,11 +152,10 @@ Ask-Apply "Disable Windows Error Reporting?" {
 # }
 
 # Hack Nerd Font
-$fontName = "Hack Nerd Font"
-$fontsInstalled = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts" |
-                  Where-Object { $_.PSChildName -like "*$fontName*" }
+$fontsFolder = "$env:WINDIR\Fonts"
+$hackFontInstalled = Get-ChildItem -Path $fontsFolder -Filter "*Hack*Nerd*Font*.ttf" -ErrorAction SilentlyContinue
 
-if ($fontsInstalled) {
+if ($hackFontInstalled) {
     Write-Host "✓ Hack Nerd Font is already installed. Skipping installation." -ForegroundColor Green
 } else {
     Write-Host "→ Installing Hack Nerd Font..." -ForegroundColor Cyan
