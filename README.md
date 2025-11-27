@@ -222,22 +222,6 @@ kubectx dev
 kubectl config get-contexts
 ```
 
-### Choosing Between Setups
-
-**Use yadm setup if:**
-- You want simple dotfiles management
-- You need portable configs across multiple machines
-- You prefer Homebrew for package management
-- You don't need complex automation
-
-**Use Ansible setup (bootstrap-wsl.sh) if:**
-- You need comprehensive system configuration
-- You want infrastructure-as-code approach
-- You have complex dependencies and setup requirements
-- You're setting up development workstations at scale
-
-Both approaches can coexist! You can use Ansible for system setup and yadm for personal dotfiles.
-
 ## Notes
 
 - The Windows script requires **Administrator privileges**
