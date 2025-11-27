@@ -3,7 +3,7 @@
 # Dotfiles Installation Script
 # =============================================================================
 # This script installs prerequisites (Homebrew & yadm) and clones dotfiles.
-# Run with: bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/install.sh)
+# Run with: bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/scripts/install.sh)
 # =============================================================================
 
 set -euo pipefail
