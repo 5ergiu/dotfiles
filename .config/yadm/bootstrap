@@ -199,13 +199,30 @@ if command -v k3sup >/dev/null 2>&1; then
     
     if [[ "$setup_k3s" =~ ^[Yy]$ ]]; then
         print_info "Setting up local k3s cluster..."
-        
-        # Ask for context name
+
         print_info "Using context name: local"
         
         # Install k3s locally
         print_info "Installing k3s cluster..."
-        if k3sup install --local --local-path "$HOME/.kube/config" --merge --context "local"; then
+
+        # Detect if running in WSL
+        TLS_SAN="127.0.0.1"
+
+        if [ -f /proc/version ] && grep -qi 'microsoft' /proc/version 2>/dev/null; then
+            # WSL detected
+            TLS_SAN=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1)
+            print_info "WSL detected, using TLS SAN: $TLS_SAN"
+        else
+            print_info "Using default TLS SAN: $TLS_SAN"
+        fi
+
+        if k3sup install \
+            --local \
+            --local-path "$HOME/.kube/config" \
+            --merge \
+            --context "local" \
+            --tls-san "$TLS_SAN"; then
+
             print_success "Local k3s cluster installed successfully!"
             print_info "Kubeconfig: $HOME/.kube/config"
             
