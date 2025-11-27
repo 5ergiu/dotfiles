@@ -7,12 +7,12 @@ This repository contains dotfiles and scripts to bootstrap and configure environ
 To set up a fresh Windows installation, run the following command in **PowerShell (Administrator)**:
 
 ```powershell
-iwr https://raw.githubusercontent.com/5ergiu/dotfiles/main/scripts/setup-windows.ps1?$(Get-Random) | iex
+iwr https://raw.githubusercontent.com/5ergiu/dotfiles/main/scripts/bootstrap-windows.ps1?$(Get-Random) | iex
 ```
 
 ### What This Script Does
 
-The `setup-windows.ps1` script performs a comprehensive Windows configuration:
+The `bootstrap-windows.ps1` script performs a comprehensive Windows configuration:
 
 #### 1. System Configuration
 - **Dark Mode**: Enables dark mode for apps and system
