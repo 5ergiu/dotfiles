@@ -7,8 +7,6 @@ tap "oven-sh/bun"
 tap "hashicorp/tap"
 
 # Core command-line tools
-brew "curl"
-brew "wget"
 brew "git"
 brew "gcc"
 brew "jq"
