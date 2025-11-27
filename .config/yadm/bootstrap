@@ -95,7 +95,11 @@ print_info "Installing packages via Homebrew Bundle..."
 
 # Install packages from Brewfile
 if [ -f "$HOME/.config/yadm/Brewfile" ]; then
-    brew bundle --file="$HOME/.config/yadm/Brewfile" --no-upgrade
+    if brew bundle --file="$HOME/.config/yadm/Brewfile" --no-upgrade; then
+        print_success "All Brewfile packages installed successfully"
+    else
+        print_info "Some packages failed to install, check the output above for details"
+    fi
 else
     print_error "Brewfile not found at $HOME/.config/yadm/Brewfile"
     exit 1
