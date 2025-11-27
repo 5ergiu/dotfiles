@@ -61,18 +61,6 @@ stty -ixon
 # Enable emacs key bindings
 bindkey -e
 
-# Case-insensitive completion
-autoload -Uz compinit
-compinit
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
-zstyle ':completion:*' menu select
-
-# Auto cd when typing directory name
-setopt AUTO_CD
-
-# Correction for commands
-setopt CORRECT
-
 # Universal Homebrew initialization that works on macOS (Intel/Apple Silicon) and Linux
 if [[ -x "/opt/homebrew/bin/brew" ]]; then
     # macOS Apple Silicon
@@ -87,6 +75,18 @@ elif [[ -x "$HOME/.linuxbrew/bin/brew" ]]; then
     # Linux (user installation)
     eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
 fi
+
+# Case-insensitive completion
+autoload -Uz compinit
+compinit
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+zstyle ':completion:*' menu select
+
+# Auto cd when typing directory name
+setopt AUTO_CD
+
+# Correction for commands
+setopt CORRECT
 
 # Load zoxide
 if command -v zoxide >/dev/null 2>&1; then
