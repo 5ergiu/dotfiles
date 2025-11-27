@@ -4,6 +4,7 @@
 
 # Taps
 tap "oven-sh/bun"
+tap "hashicorp/tap"
 
 # Core command-line tools
 brew "curl"
@@ -30,7 +31,7 @@ brew "ansible"
 brew "ansible-lint"
 brew "docker"
 brew "opentofu"
-brew "packer"
+brew "hashicorp/tap/packer"
 brew "terraform"
 
 # Container orchestration tools
