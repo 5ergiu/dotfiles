@@ -2,6 +2,21 @@
 # Windows Setup Script
 # ---------------------------
 
+function Ask-Apply {
+    param(
+        [string]$Message,
+        [scriptblock]$Action
+    )
+
+    $answer = Read-Host "$Message (Y/N)"
+    if ($answer -eq 'Y' -or $answer -eq 'y') {
+        & $Action
+        Write-Host "✓ Applied: $Message" -ForegroundColor Green
+    } else {
+        Write-Host "✗ Skipped: $Message" -ForegroundColor Yellow
+    }
+}
+
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 if (-not $isAdmin) {
@@ -17,158 +32,124 @@ Write-Host "▶ Starting Windows setup..." -ForegroundColor Green
 # ---------------------------
 Write-Host "▶ Configuring Windows system settings..." -ForegroundColor Green
 
-# Dark Mode Configuration
-Write-Host "→ Enabling dark mode..." -ForegroundColor Cyan
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "AppsUseLightTheme" -Value 0 -Type DWord -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "SystemUsesLightTheme" -Value 0 -Type DWord -Force
+# Dark Mode
+Ask-Apply "Enable Dark Mode?" {
+    Write-Host "→ Enabling dark mode..." -ForegroundColor Cyan
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" "AppsUseLightTheme" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" "SystemUsesLightTheme" 0 -Type DWord -Force
+}
 
 # File Explorer Settings
-Write-Host "→ Configuring File Explorer..." -ForegroundColor Cyan
-
-# Show hidden files and folders
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Value 1 -Type DWord -Force
-
-# Show file extensions
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0 -Type DWord -Force
-
-# Show full path in title bar
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CamelCase" -Name "ShellState" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-
-# Open File Explorer to This PC instead of Quick Access
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "LaunchTo" -Value 1 -Type DWord -Force
-
-# Show protected operating system files (optional, commented out for safety)
-# Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Value 1 -Type DWord -Force
+Ask-Apply "Configure File Explorer settings?" {
+    Write-Host "→ Configuring File Explorer..." -ForegroundColor Cyan
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "Hidden" 1 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "HideFileExt" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\CamelCase" "ShellState" 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "LaunchTo" 1 -Type DWord -Force
+}
 
 # Taskbar Settings
-Write-Host "→ Configuring Taskbar..." -ForegroundColor Cyan
-
-# Show all system tray icons
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" -Name "EnableAutoTray" -Value 0 -Type DWord -Force
-
-# Disable taskbar search box
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 0 -Type DWord -Force
-
-# Disable Task View button
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowTaskViewButton" -Value 0 -Type DWord -Force
-
-# Disable News and Interests (Widgets)
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" -Name "ShellFeedsTaskbarViewMode" -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
+Ask-Apply "Configure Taskbar settings?" {
+    Write-Host "→ Configuring Taskbar..." -ForegroundColor Cyan
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer" "EnableAutoTray" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" "SearchboxTaskbarMode" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowTaskViewButton" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Feeds" "ShellFeedsTaskbarViewMode" 2 -Type DWord -Force -ErrorAction SilentlyContinue
+}
 
 # Privacy Settings
-Write-Host "→ Configuring Privacy settings..." -ForegroundColor Cyan
-
-# Disable Activity History
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-
-# Disable Location Tracking
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Value "Deny" -Type String -Force -ErrorAction SilentlyContinue
-
-# Disable Telemetry
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+Ask-Apply "Apply Privacy settings?" {
+    Write-Host "→ Configuring Privacy settings..." -ForegroundColor Cyan
+    Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" "EnableActivityFeed" 0 -Type DWord -Force
+    Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" "PublishUserActivities" 0 -Type DWord -Force
+    Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" "Value" "Deny" -Type String -Force
+    Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" "AllowTelemetry" 0 -Type DWord -Force
+}
 
 # Performance Settings
-Write-Host "→ Configuring Performance settings..." -ForegroundColor Cyan
-
-# Disable Transparency Effects
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "EnableTransparency" -Value 0 -Type DWord -Force
-
-# Disable Animations (optional - uncomment if you want better performance)
-# Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\WindowMetrics" -Name "MinAnimate" -Value 0 -Type String -Force
+Ask-Apply "Apply performance settings?" {
+    Write-Host "→ Configuring Performance settings..." -ForegroundColor Cyan
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" "EnableTransparency" 0 -Type DWord -Force
+}
 
 # Developer Settings
-Write-Host "→ Configuring Developer settings..." -ForegroundColor Cyan
-
-# Enable Developer Mode
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" -Name "AllowDevelopmentWithoutDevLicense" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-
-# Enable Long Paths
-Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+Ask-Apply "Enable Developer settings?" {
+    Write-Host "→ Configuring Developer settings..." -ForegroundColor Cyan
+    Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" "AllowDevelopmentWithoutDevLicense" 1 -Type DWord -Force
+    Set-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" "LongPathsEnabled" 1 -Type DWord -Force
+}
 
 # Power Settings
-Write-Host "→ Configuring Power settings..." -ForegroundColor Cyan
+Ask-Apply "Apply power settings?" {
+    Write-Host "→ Configuring Power settings..." -ForegroundColor Cyan
 
-# Set power plan to High Performance
-powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+    powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
 
-# Configure display timeout
-# On battery: 10 minutes
-powercfg /change monitor-timeout-dc 10
-# Plugged in: 15 minutes
-powercfg /change monitor-timeout-ac 15
+    powercfg /change monitor-timeout-dc 10
+    powercfg /change monitor-timeout-ac 15
+    powercfg /change standby-timeout-dc 15
+    powercfg /change standby-timeout-ac 30
 
-# Configure sleep timeout
-# On battery: 15 minutes
-powercfg /change standby-timeout-dc 15
-# Plugged in: 30 minutes
-powercfg /change standby-timeout-ac 30
+    powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
+    powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
 
-# Set power button action to "Do nothing" (0 = Do nothing)
-powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
-powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 7648efa3-dd9c-4e3e-b566-50f929386280 0
+    powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 96996bc0-ad50-47ec-923b-6f41874dd9eb 0
+    powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 96996bc0-ad50-47ec-923b-6f41874dd9eb 0
 
-# Set sleep button action to "Do nothing" (0 = Do nothing)
-powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 96996bc0-ad50-47ec-923b-6f41874dd9eb 0
-powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 96996bc0-ad50-47ec-923b-6f41874dd9eb 0
+    powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+    powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
 
-# Set lid close action to "Do nothing" (0 = Do nothing)
-powercfg /setacvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
-powercfg /setdcvalueindex SCHEME_CURRENT 4f971e89-eebd-4455-a8de-9e59040e7347 5ca83367-6e45-459f-a27b-476b1d01c936 0
+    powercfg /setactive SCHEME_CURRENT
+    powercfg /hibernate off
+}
 
-# Apply the settings
-powercfg /setactive SCHEME_CURRENT
+# Windows Update
+Ask-Apply "Apply Windows Update settings?" {
+    Write-Host "→ Configuring Windows Update..." -ForegroundColor Cyan
+    Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" "NoAutoRebootWithLoggedOnUsers" 1 -Type DWord -Force
+    Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" "AUOptions" 3 -Type DWord -Force
+}
 
-# Disable hibernation (frees up disk space)
-powercfg /hibernate off
+# Keyboard
+Ask-Apply "Apply Keyboard settings?" {
+    Write-Host "→ Configuring Keyboard..." -ForegroundColor Cyan
+    Set-ItemProperty "HKCU:\Control Panel\Keyboard" "KeyboardDelay" 0 -Type String -Force
+    Set-ItemProperty "HKCU:\Control Panel\Keyboard" "KeyboardSpeed" 31 -Type String -Force
+}
 
-# Windows Update Settings
-Write-Host "→ Configuring Windows Update..." -ForegroundColor Cyan
+# Startup Settings
+Ask-Apply "Apply Startup settings?" {
+    Write-Host "→ Configuring Startup..." -ForegroundColor Cyan
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" "StartupDelayInMSec" 0 -Type DWord -Force
+}
 
-# Disable automatic restart after updates
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "NoAutoRebootWithLoggedOnUsers" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "AUOptions" -Value 3 -Type DWord -Force -ErrorAction SilentlyContinue
+# Bloatware & Suggestions
+Ask-Apply "Disable bloatware & suggestions?" {
+    Write-Host "→ Disabling Windows bloatware..." -ForegroundColor Cyan
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" "SystemPaneSuggestionsEnabled" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" "SubscribedContent-338393Enabled" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" "SubscribedContent-353694Enabled" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" "SubscribedContent-353696Enabled" 0 -Type DWord -Force
+    Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" "SoftLandingEnabled" 0 -Type DWord -Force
+}
 
-# Keyboard Settings
-Write-Host "→ Configuring Keyboard settings..." -ForegroundColor Cyan
+# Cortana
+Ask-Apply "Disable Cortana?" {
+    Write-Host "→ Disabling Cortana..." -ForegroundColor Cyan
+    Set-ItemProperty "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "AllowCortana" 0 -Type DWord -Force
+}
 
-# Set keyboard repeat rate to fastest
-Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Value 0 -Type String -Force
-Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardSpeed" -Value 31 -Type String -Force
-
-# Startup and Boot Settings
-Write-Host "→ Configuring Startup settings..." -ForegroundColor Cyan
-
-# Disable startup delay for user apps
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" -Name "StartupDelayInMSec" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-
-# Windows Bloatware & Suggestions
-Write-Host "→ Disabling Windows bloatware and suggestions..." -ForegroundColor Cyan
-
-# Disable app suggestions in Start Menu
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SystemPaneSuggestionsEnabled" -Value 0 -Type DWord -Force
-
-# Disable suggestions in Settings
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-338393Enabled" -Value 0 -Type DWord -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-353694Enabled" -Value 0 -Type DWord -Force
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SubscribedContent-353696Enabled" -Value 0 -Type DWord -Force
-
-# Disable tips and suggestions
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" -Name "SoftLandingEnabled" -Value 0 -Type DWord -Force
-
-# Cortana Settings
-Write-Host "→ Disabling Cortana..." -ForegroundColor Cyan
-
-# Disable Cortana
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-
-# Disable Windows Error Reporting
-Write-Host "→ Disabling Windows Error Reporting..." -ForegroundColor Cyan
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting" -Name "Disabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+# Windows Error Reporting
+Ask-Apply "Disable Windows Error Reporting?" {
+    Write-Host "→ Disabling Windows Error Reporting..." -ForegroundColor Cyan
+    Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting" "Disabled" 1 -Type DWord -Force
+}
 
 # Windows Defender Settings (Optional - only if you use third-party antivirus)
-# Write-Host "→ Configuring Windows Defender..." -ForegroundColor Cyan
-# Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+# Ask-Apply "Disable Windows Error Reporting?" {
+#     Write-Host "→ Configuring Windows Defender..." -ForegroundColor Cyan
+#     Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+# }
 
 Write-Host "✓ System configuration complete!" -ForegroundColor Green
 Write-Host "▶ Restarting Explorer to apply changes..." -ForegroundColor Green
