@@ -170,10 +170,9 @@ mkdir -p "$HOME/.kube"
 print_success ".kube directory created"
 
 # Create placeholder config files if they don't exist
-for config_file in "$HOME/.kube/config" "$HOME/.kube/config.local" "$HOME/.kube/config.dev" "$HOME/.kube/config.prod"; do
-    if [ ! -f "$config_file" ]; then
-        print_info "Creating placeholder: $config_file"
-        /bin/cat > "$config_file" << 'EOF'
+if [ ! -f "$HOME/.kube/config" ]; then
+    print_info "Creating placeholder: $HOME/.kube/config"
+    /bin/cat > "$HOME/.kube/config" << 'EOF'
 apiVersion: v1
 kind: Config
 clusters: []
@@ -182,8 +181,7 @@ current-context: ""
 preferences: {}
 users: []
 EOF
-    fi
-done
+fi
 
 print_success "Kubernetes configuration files initialized"
 
@@ -207,15 +205,15 @@ if command -v k3sup >/dev/null 2>&1; then
         
         # Install k3s locally
         print_info "Installing k3s cluster..."
-        if k3sup install --local --local-path "$HOME/.kube/config.local" --merge --context "local"; then
+        if k3sup install --local --local-path "$HOME/.kube/config" --merge --context "local"; then
             print_success "Local k3s cluster installed successfully!"
-            print_info "Kubeconfig: $HOME/.kube/config.local"
+            print_info "Kubeconfig: $HOME/.kube/config"
             
             # Wait for cluster to be ready
             print_info "Waiting for cluster to be ready..."
-            if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config.local"; then
+            if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config"; then
                 print_success "Cluster is ready!"
-                kubectl --context="local" --kubeconfig="$HOME/.kube/config.local" get nodes
+                kubectl --context="local" --kubeconfig="$HOME/.kube/config" get nodes
 
                 # Merge kubeconfig files
                 if [ -x "$HOME/scripts/kube-merge" ]; then
@@ -250,7 +248,7 @@ if [ "$K3S_SETUP_STATUS" = "installed" ]; then
     echo -e "  ${BLUE}•${RESET} Or switch context: ${YELLOW}kubectx local${RESET}"
 elif [ "$K3S_SETUP_STATUS" = "skipped" ]; then
     echo -e "\n${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
-    echo -e "  ${BLUE}•${RESET} Run: ${YELLOW}k3sup install --local --local-path ~/.kube/config.local --merge --context <name>${RESET}"
+    echo -e "  ${BLUE}•${RESET} Run: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context <name>${RESET}"
 fi
 
 echo -e ""
