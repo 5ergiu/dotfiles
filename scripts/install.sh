@@ -137,7 +137,7 @@ DOTFILES_REPO="https://github.com/5ergiu/dotfiles.git"
 # Check if yadm repo already exists
 if yadm rev-parse --git-dir > /dev/null 2>&1; then
     print_warning "yadm repository already exists!"
-    read -rp "$(echo -e "${YELLOW}Do you want to overwrite it? (y/N): ${RESET}")" overwrite
+    read -rp "$(echo -e "${YELLOW}Do you want to overwrite it? (Y/N): ${RESET}")" overwrite
     
     if [[ "$overwrite" =~ ^[Yy]$ ]]; then
         print_info "Removing existing yadm repository..."
