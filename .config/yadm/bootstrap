@@ -203,7 +203,7 @@ K3S_SETUP_STATUS="not_available"
 if command -v k3sup >/dev/null 2>&1; then
     print_step "Local Kubernetes cluster setup (optional)"
     
-    read -rp "$(echo -e "${CYAN}Would you like to setup a local k3s cluster? (y/N): ${RESET}")" setup_k3s
+    read -rp "$(echo -e "${CYAN}Would you like to setup a local k3s cluster? (Y/N): ${RESET}")" setup_k3s
     
     if [[ "$setup_k3s" =~ ^[Yy]$ ]]; then
         print_info "Setting up local k3s cluster..."
