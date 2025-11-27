@@ -21,6 +21,8 @@ brew "neovim"
 brew "python@3.14"
 brew "node@24"
 brew "bun"
+brew "yarn"
+brew "pnpm"
 
 # DevOps & Infrastructure
 brew "ansible"
