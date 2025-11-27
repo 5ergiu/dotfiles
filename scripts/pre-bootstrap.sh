@@ -84,19 +84,19 @@ else
     # Install Homebrew non-interactively
     NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
-    # Initialize Homebrew environment
+    # Determine Homebrew prefix
     if [ "$OS" = "Darwin" ]; then
         if [ "$ARCH" = "arm64" ]; then
             BREW_PREFIX="/opt/homebrew"
-            eval "$($BREW_PREFIX/bin/brew shellenv)"
         else
             BREW_PREFIX="/usr/local"
-            eval "$($BREW_PREFIX/bin/brew shellenv)"
         fi
     else
         BREW_PREFIX="/home/linuxbrew/.linuxbrew"
-        eval "$($BREW_PREFIX/bin/brew shellenv)"
     fi
+    
+    # Add Homebrew to PATH for this script
+    eval "$($BREW_PREFIX/bin/brew shellenv)"
     
     print_success "Homebrew installed successfully!"
 fi
@@ -138,9 +138,8 @@ if yadm rev-parse --git-dir > /dev/null 2>&1; then
 fi
 
 print_info "Cloning from: $DOTFILES_REPO"
-print_info "Note: yadm will automatically run the bootstrap script after cloning"
 
-if ! yadm clone "$DOTFILES_REPO"; then
+if ! yadm clone "$DOTFILES_REPO" --bootstrap; then
     print_error "Failed to clone dotfiles repository"
     exit 1
 fi
@@ -156,3 +155,4 @@ echo -e "${CYAN}📝 What was done:${RESET}"
 echo -e "  ${GREEN}✓${RESET} Homebrew installed"
 echo -e "  ${GREEN}✓${RESET} yadm installed"
 echo -e "  ${GREEN}✓${RESET} Dotfiles cloned and bootstrapped"
+echo ""
