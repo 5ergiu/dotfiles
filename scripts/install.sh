@@ -78,7 +78,7 @@ else
         
         if command -v sudo >/dev/null 2>&1; then
             sudo apt update
-            sudo apt install -y build-essential procps curl file git
+            sudo apt install -y build-essential procps curl wget file git
             print_success "Linux dependencies installed"
         else
             print_error "sudo not available. Cannot install Linux dependencies"
