@@ -64,14 +64,13 @@ This repository also serves as a dotfiles manager using [yadm](https://yadm.io/)
 Install prerequisites (Homebrew & yadm) and clone dotfiles in one command:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/bootstrap-init.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/pre-bootstrap.sh)
 ```
 
 This script will:
 1. Install Homebrew (if not already installed)
 2. Install yadm via Homebrew
 3. Clone this repository using yadm
-4. Run the bootstrap script (`.config/yadm/bootstrap`) to set up your environment
 
 ### What the Bootstrap Does
 

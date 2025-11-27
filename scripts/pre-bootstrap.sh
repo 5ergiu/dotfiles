@@ -3,7 +3,7 @@
 # Dotfiles Pre-Bootstrap Script
 # =============================================================================
 # This script installs prerequisites (Homebrew & yadm) and clones dotfiles.
-# Run with: bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/bootstrap-init.sh)
+# Run with: bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/pre-bootstrap.sh)
 # =============================================================================
 
 set -euo pipefail
