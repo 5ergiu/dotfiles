@@ -110,8 +110,10 @@ fi
 
 # Detect if running in WSL
 IS_WSL=false
+K3SUP_TLS_SAN=127.0.0.1
 if [ "$OS" = "Linux" ] && [ -f /proc/version ] && grep -qi 'microsoft' /proc/version 2>/dev/null; then
     IS_WSL=true
+    K3SUP_TLS_SAN=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1)
     print_info "WSL environment detected"
 fi
 
@@ -256,22 +258,12 @@ if command -v k3sup >/dev/null 2>&1; then
         # Install k3s locally
         print_info "Installing k3s cluster..."
 
-        # Detect if running in WSL
-        TLS_SAN="127.0.0.1"
-
-        if [ "$IS_WSL" = true ]; then
-            TLS_SAN=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1)
-            print_info "WSL detected, using TLS SAN: $TLS_SAN"
-        else
-            print_info "Using default TLS SAN: $TLS_SAN"
-        fi
-
         if k3sup install \
             --local \
             --local-path "$HOME/.kube/config" \
             --merge \
             --context "local" \
-            --tls-san "$TLS_SAN"; then
+            --tls-san "$K3SUP_TLS_SAN"; then
 
             print_success "Local k3s cluster installed successfully!"
             print_info "Kubeconfig: $HOME/.kube/config"
@@ -299,6 +291,48 @@ if command -v k3sup >/dev/null 2>&1; then
     fi
 fi
 
+# =============================================================================
+# Step 6: Optional - Prompt to decrypt secrets
+# =============================================================================
+
+decrypt_choice=$(prompt_user "Do you want to decrypt your secrets now?" "Y")
+
+if [[ "$decrypt_choice" =~ ^[Yy]$ ]]; then
+    print_step "Decrypting secrets..."
+    if yadm decrypt; then
+        print_success "Secrets decrypted successfully!"
+
+        # Optionally switch remote to SSH (only if cloned via HTTPS)
+        if [[ "$GIT_REPO" =~ ^https:// ]]; then
+            ssh_choice=$(prompt_user "Do you want to switch your yadm repo remote to SSH?" "N")
+            
+            if [[ "$ssh_choice" =~ ^[Yy]$ ]]; then
+                # Suggest SSH URL based on HTTPS URL (supports GitHub, GitLab, Bitbucket, etc.)
+                suggested_ssh=$(echo "$GIT_REPO" | sed -E 's|https://([^/]+)/|git@\1:|')
+                print_info "Suggested SSH URL: $suggested_ssh"
+                read -rp "$(echo -e "${CYAN}Enter your SSH URL (or press Enter to use suggested): ${RESET}")" ssh_url
+                ssh_url="${ssh_url:-$suggested_ssh}"
+                
+                if [[ -n "$ssh_url" ]]; then
+                    if yadm remote set-url origin "$ssh_url"; then
+                        print_success "yadm remote switched to SSH: $ssh_url"
+                    else
+                        print_error "Failed to switch remote to SSH"
+                    fi
+                else
+                    print_warning "No SSH URL provided. Skipping remote switch."
+                fi
+            fi
+        else
+            print_info "Repository already uses SSH or non-HTTPS protocol. No remote switch needed."
+        fi
+    else
+        print_warning "Secrets decryption failed. You can decrypt later with: yadm decrypt"
+    fi
+else
+    print_info "Secrets decryption skipped. You can decrypt later with: yadm decrypt"
+fi
+
 # ============================================================================
 # COMPLETION
 # ============================================================================
@@ -308,29 +342,22 @@ print_header "✨ Bootstrap Complete!"
 echo -e "${GREEN}${BOLD}All steps completed successfully!${RESET}\n"
 
 if [ "$K3S_SETUP_STATUS" = "installed" ]; then
-    echo -e "\n${CYAN}☸️  Kubernetes cluster:${RESET}"
+    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
     echo -e "  ${GREEN}✓${RESET} Local k3s cluster is ready"
     echo -e "  ${BLUE}•${RESET} Use ${YELLOW}kubectl --context=local${RESET} to interact with your cluster"
     echo -e "  ${BLUE}•${RESET} Or switch context: ${YELLOW}kubectx local${RESET}"
 elif [ "$K3S_SETUP_STATUS" = "installed_pending" ]; then
-    echo -e "\n${CYAN}☸️  Kubernetes cluster:${RESET}"
+    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
     echo -e "  ${YELLOW}⏳${RESET} Cluster installed but readiness check pending"
     echo -e "  ${BLUE}•${RESET} Try manually: ${YELLOW}kubectl --context=local get nodes${RESET}"
 elif [ "$K3S_SETUP_STATUS" = "skipped" ]; then
-    echo -e "\n${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
+    echo -e "${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
     echo -e "  ${BLUE}•${RESET} To install later: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
 elif [ "$K3S_SETUP_STATUS" = "failed" ]; then
-    echo -e "\n${CYAN}☸️  Kubernetes cluster:${RESET}"
+    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
     echo -e "  ${RED}✗${RESET} Cluster installation failed"
     echo -e "  ${BLUE}•${RESET} Check logs: ${YELLOW}$LOG_FILE${RESET}"
     echo -e "  ${BLUE}•${RESET} Try again: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
-fi
-
-if [ "$IS_WSL" = true ] && ["$K3S_SETUP_STATUS" != "failed"]; then
-    echo -e "  ${BOLD}${CYAN}Windows Apps (Lens, etc.):${RESET}"
-    echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}C:\\Users\\%USERNAME%\\.kube\\config${RESET}"
-    echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
-    echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to ${YELLOW}ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1${RESET}"
 fi
 
 echo -e ""
@@ -338,6 +365,13 @@ echo -e "${CYAN}📝 Next steps:${RESET}"
 echo -e "  ${BLUE}*${RESET} Restart your shell in order for all changes to take effect"
 echo -e "  ${BLUE}*${RESET} Run ${YELLOW}yadm decrypt${RESET} to restore all encrypted files (SSH keys, passwords, and other secrets)"
 echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
+
+if [ "$IS_WSL" = true ] && [ "$K3S_SETUP_STATUS" != "failed" ]; then
+    echo -e "${CYAN}🖥️  Interacting with the Kubernetes cluster installed inside WSL on Windows Apps (Lens, etc.):${RESET}"
+    echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}C:\\Users\\%USERNAME%\\.kube\\config${RESET}"
+    echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
+    echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to ${YELLOW}ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1${RESET}"
+fi
 
 echo ""
 echo -e "${CYAN}🎉 Happy coding!${RESET}\n"
