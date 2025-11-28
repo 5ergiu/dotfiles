@@ -304,7 +304,7 @@ if [[ "$decrypt_choice" =~ ^[Yy]$ ]]; then
 
         # Optionally switch remote to SSH (only if cloned via HTTPS)
         if [[ "$GIT_REPO" =~ ^https:// ]]; then
-            ssh_choice=$(prompt_user "Do you want to switch your yadm repo remote to SSH?" "N")
+            ssh_choice=$(prompt_user "Do you want to switch your yadm repo remote to SSH?" "Y")
             
             if [[ "$ssh_choice" =~ ^[Yy]$ ]]; then
                 # Suggest SSH URL based on HTTPS URL (supports GitHub, GitLab, Bitbucket, etc.)
