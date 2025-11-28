@@ -7,7 +7,7 @@ This repository contains dotfiles and scripts to bootstrap and configure environ
 To set up a fresh Windows installation, run the following command in **PowerShell (Administrator)**:
 
 ```powershell
-iwr https://raw.githubusercontent.com/5ergiu/dotfiles/main/scripts/bootstrap-windows.ps1?$(Get-Random) | iex
+iwr https://gist.githubusercontent.com/5ergiu/134c145581125090346ce76375097744/raw/bootstrap-windows.ps1?$(Get-Random) | iex
 ```
 
 ### What This Script Does
@@ -67,7 +67,10 @@ This repository also serves as a dotfiles manager using [yadm](https://yadm.io/)
 Install prerequisites (Homebrew & yadm) and clone dotfiles in one command:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/5ergiu/dotfiles/main/scripts/install.sh)
+GIT_REPO="https://github.com/5ergiu/dotfiles.git" \
+SKIP_PROMPTS=true \
+SSH_REPO_URL="git@github.com:5ergiu/dotfiles.git" \
+bash <(curl -fsSL https://gist.githubusercontent.com/5ergiu/74d6ac65f5a67489895b36c776c44923/raw/install-dotfiles.sh)
 ```
 
 This script will:
@@ -143,82 +146,6 @@ yadm push
 
 # Pull latest changes
 yadm pull
-```
-
-### Kubernetes Configuration Management
-
-This dotfiles setup includes a multi-environment kubeconfig management system:
-
-#### Configuration Structure
-
-Kubeconfig files are organized using a naming pattern: **all config files must start with `config`**
-
-Default files created during bootstrap:
-- `~/.kube/config` - Main merged configuration (used by GUI tools like Lens)
-- `~/.kube/config.local` - Local k3s cluster (created during bootstrap if selected)
-- `~/.kube/config.dev` - Development environment (placeholder)
-- `~/.kube/config.prod` - Production environment (placeholder)
-
-**You can add any additional environments following this pattern:**
-- `~/.kube/config.staging`
-- `~/.kube/config.qa`
-- `~/.kube/config.test`
-- `~/.kube/config.<your-environment>`
-
-⚠️ **Important:** All kubeconfig files must follow the `config.*` naming pattern. The system automatically discovers and merges all files matching this pattern.
-
-#### How It Works
-
-**Automatic Discovery:**
-- The bootstrap script creates the `~/.kube` directory with placeholder files
-- Your `.zshrc` automatically exports `KUBECONFIG` to include all `config.*` files
-- The `kube-merge` script dynamically discovers all files matching the pattern
-- No need to update scripts when adding new environment configs
-
-**Automatic Merging:**
-- CLI tools like `kubectl` will see all contexts from all files
-- GUI tools (Lens, K9s, etc.) read from the merged `~/.kube/config`
-- Backup files (`*.backup`) are automatically excluded from merging
-
-**Manual Merging:**
-
-Whenever you update individual config files, run:
-
-```bash
-kube-merge
-# or use the alias
-km
-```
-
-This script will:
-- Automatically discover all `config.*` files (excluding backups)
-- Create a backup of the existing merged config
-- Merge all configs into `~/.kube/config`
-- Show available contexts and current context
-- Display any errors and restore backup if merge fails
-
-**Usage Examples:**
-
-```bash
-# Create a new environment config
-touch ~/.kube/config.staging
-# Add your cluster configuration to it, then merge:
-km
-
-# After adding a new cluster to any config file
-kube-merge
-
-# Switch between contexts
-kubectl config use-context local
-kubectl config use-context dev
-kubectl config use-context staging
-
-# Or with kubectx (if installed)
-kubectx local
-kubectx dev
-
-# List all available contexts from all config files
-kubectl config get-contexts
 ```
 
 ## Notes
