@@ -1,6 +1,6 @@
 # Dotfiles & Setup Scripts
 
-This repository contains dotfiles and scripts to bootstrap and configure environments, including fresh Windows installations and WSL.
+This repository contains dotfiles and scripts to bootstrap and configure environments.
 
 ## Windows Setup
 
