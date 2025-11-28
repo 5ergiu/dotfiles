@@ -367,10 +367,11 @@ echo -e "  ${BLUE}*${RESET} Run ${YELLOW}yadm decrypt${RESET} to restore all enc
 echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
 
 if [ "$IS_WSL" = true ] && [ "$K3S_SETUP_STATUS" != "failed" ]; then
+    echo -e ""
     echo -e "${CYAN}🖥️  Interacting with the Kubernetes cluster installed inside WSL on Windows Apps (Lens, etc.):${RESET}"
     echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}C:\\Users\\%USERNAME%\\.kube\\config${RESET}"
     echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
-    echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to ${YELLOW}ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1${RESET}"
+    echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to $K3SUP_TLS_SAN${RESET}"
 fi
 
 echo ""
