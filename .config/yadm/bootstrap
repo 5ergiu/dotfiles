@@ -19,9 +19,6 @@ readonly CYAN='\033[0;36m'
 readonly BOLD='\033[1m'
 readonly RESET='\033[0m'
 
-# Non-interactive mode support
-NON_INTERACTIVE="${NON_INTERACTIVE:-false}"
-
 # Log file
 readonly LOG_FILE="$HOME/.config/yadm/bootstrap.log"
 readonly TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
@@ -77,16 +74,10 @@ cleanup() {
 
 trap cleanup EXIT
 
-# Prompt wrapper for non-interactive mode
+# Prompt wrapper with default response
 prompt_user() {
     local prompt_message="$1"
     local default_response="${2:-N}"
-    
-    if [ "$NON_INTERACTIVE" = "true" ]; then
-        print_info "Non-interactive mode: using default '$default_response' for: $prompt_message"
-        echo "$default_response"
-        return
-    fi
     
     local response
     read -rp "$(echo -e "${CYAN}${prompt_message} (Y/N) [Default: $default_response]: ${RESET}")" response
@@ -255,7 +246,7 @@ K3S_SETUP_STATUS="not_available"
 if command -v k3sup >/dev/null 2>&1; then
     print_step "Local Kubernetes cluster setup (optional)"
     
-    setup_k3s=$(prompt_user "Would you like to setup a local k3s cluster?" "N")
+    setup_k3s=$(prompt_user "Would you like to setup a local k3s cluster?" "Y")
     
     if [[ "$setup_k3s" =~ ^[Yy]$ ]]; then
         print_info "Setting up local k3s cluster..."
