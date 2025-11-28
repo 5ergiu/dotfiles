@@ -68,8 +68,6 @@ Install prerequisites (Homebrew & yadm) and clone dotfiles in one command:
 
 ```bash
 GIT_REPO="https://github.com/5ergiu/dotfiles.git" \
-SKIP_PROMPTS=true \
-SSH_REPO_URL="git@github.com:5ergiu/dotfiles.git" \
 bash <(curl -fsSL https://gist.githubusercontent.com/5ergiu/74d6ac65f5a67489895b36c776c44923/raw/install-dotfiles.sh)
 ```
 
