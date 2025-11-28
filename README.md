@@ -29,6 +29,9 @@ The `bootstrap-windows.ps1` script performs a comprehensive Windows configuratio
   - Disables Activity History
   - Disables Location Tracking
   - Disables Telemetry
+- **Disable unnecessary Windows services**:
+  - SysMain (SuperFetch)
+  - Windows Search indexing
 - **Performance**:
   - Disables Transparency Effects
   - High Performance power plan
