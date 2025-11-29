@@ -368,7 +368,7 @@ echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands
 if [ "$IS_WSL" = true ] && [ "$K3S_SETUP_STATUS" != "failed" ]; then
     echo -e ""
     echo -e "${CYAN}🖥️  Interacting with the Kubernetes cluster installed inside WSL on Windows Apps (Lens, etc.):${RESET}"
-    echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}C:\\Users\\%USERNAME%\\.kube\\config${RESET}"
+    echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}mnt/c/Users/%USERNAME%/.kube/config${RESET}"
     echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
     echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to $K3SUP_TLS_SAN${RESET}"
 fi
