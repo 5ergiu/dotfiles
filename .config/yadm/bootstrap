@@ -363,7 +363,6 @@ fi
 echo -e ""
 echo -e "${CYAN}📝 Next steps:${RESET}"
 echo -e "  ${BLUE}*${RESET} Restart your shell in order for all changes to take effect"
-echo -e "  ${BLUE}*${RESET} Run ${YELLOW}yadm decrypt${RESET} to restore all encrypted files (SSH keys, passwords, and other secrets)"
 echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
 
 if [ "$IS_WSL" = true ] && [ "$K3S_SETUP_STATUS" != "failed" ]; then
