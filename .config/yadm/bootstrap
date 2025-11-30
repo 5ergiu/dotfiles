@@ -129,7 +129,15 @@ if [ -f "$BREWFILE_PATH" ]; then
     print_info "Found Brewfile at: $BREWFILE_PATH"
     print_info "Installing packages (this may take a while)..."
     
-    if brew bundle --file="$BREWFILE_PATH" --no-upgrade 2>&1 | tee -a "$LOG_FILE"; then
+    if [ "$OS" = "Darwin" ]; then
+        print_info "Running Homebrew Bundle with cask support (macOS)"
+        BUNDLE_CMD=(brew bundle --file="$BREWFILE_PATH" --no-upgrade)
+    else
+        print_info "Running Homebrew Bundle without casks (Linux/WSL)"
+        BUNDLE_CMD=(brew bundle --file="$BREWFILE_PATH" --no-upgrade --no-cask)
+    fi
+
+    if "${BUNDLE_CMD[@]}" 2>&1 | tee -a "$LOG_FILE"; then
         print_success "All Brewfile packages installed successfully"
     else
         print_warning "Some packages failed to install, check the output above for details"
