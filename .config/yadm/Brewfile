@@ -57,20 +57,20 @@ brew "superfile"
 brew "zoxide"
 
 # Cask tools
-brew install --cask alt-tab
-brew install --cask discord
-brew install --cask firefox
-brew install --cask google-chrome
-brew install --cask httpie
-brew install --cask lens
-brew install --cask microsoft-teams
-brew install --cask openlens
-brew install --cask orbstack
-brew install --cask raycast
-brew install --cask slack
-brew install --cask spotify
-brew install --cask tableplus
-brew install --cask visual-studio-code
-brew install --cask vlc
-brew install --cask warp
-brew install --cask zoom
+cask "alt-tab"
+cask "discord"
+cask "firefox"
+cask "google-chrome"
+cask "httpie"
+cask "lens"
+cask "microsoft-teams"
+cask "openlens"
+cask "orbstack"
+cask "raycast"
+cask "slack"
+cask "spotify"
+cask "tableplus"
+cask "visual-studio-code"
+cask "vlc"
+cask "warp"
+cask "zoom"
