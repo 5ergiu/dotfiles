@@ -9,6 +9,7 @@ tap "hashicorp/tap"
 # Core command-line tools
 brew "git"
 brew "gcc"
+brew "gnupg"
 brew "jq"
 
 # Shell
@@ -70,6 +71,7 @@ cask "orbstack"
 cask "raycast"
 cask "slack"
 cask "spotify"
+cask "superwhisper"
 cask "tableplus"
 cask "visual-studio-code"
 cask "vlc"
