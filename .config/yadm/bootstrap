@@ -214,37 +214,39 @@ print_success "zsh configuration found"
 # STEP 4: Kubernetes Configuration Setup
 # ======================================================================
 
-print_step "Setting up Kubernetes configuration directory..."
-
-# Create .kube directory if it doesn't exist
-mkdir -p "$HOME/.kube"
-print_success ".kube directory created"
-
-KUBECONFIG_FILE="$HOME/.kube/config"
-
-# If kubeconfig exists, back it up, if not, create placeholder
-if [ -f "$KUBECONFIG_FILE" ]; then
-    print_info "Backing up existing kubeconfig..."
-    BACKUP_FILE="$KUBECONFIG_FILE.backup.$(date +%Y%m%d-%H%M%S)"
-    cp "$KUBECONFIG_FILE" "$BACKUP_FILE"
-    print_success "Backup created: $BACKUP_FILE"
-else
-    print_info "Creating placeholder kubeconfig: $KUBECONFIG_FILE"
-    /bin/cat > "$KUBECONFIG_FILE" << 'EOF'
-apiVersion: v1
-kind: Config
-clusters: []
-contexts: []
-current-context: ""
-preferences: {}
-users: []
-EOF
-    # Set proper permissions for kubeconfig
-    chmod 600 "$KUBECONFIG_FILE"
-    print_success "Kubeconfig created with secure permissions (600)"
+if [ "$OS" != "Darwin" ]; then
+    print_step "Setting up Kubernetes configuration directory..."
+    
+    # Create .kube directory if it doesn't exist
+    mkdir -p "$HOME/.kube"
+    print_success ".kube directory created"
+    
+    KUBECONFIG_FILE="$HOME/.kube/config"
+    
+    # If kubeconfig exists, back it up, if not, create placeholder
+    if [ -f "$KUBECONFIG_FILE" ]; then
+        print_info "Backing up existing kubeconfig..."
+        BACKUP_FILE="$KUBECONFIG_FILE.backup.$(date +%Y%m%d-%H%M%S)"
+        cp "$KUBECONFIG_FILE" "$BACKUP_FILE"
+        print_success "Backup created: $BACKUP_FILE"
+    else
+        print_info "Creating placeholder kubeconfig: $KUBECONFIG_FILE"
+        /bin/cat > "$KUBECONFIG_FILE" << 'EOF'
+    apiVersion: v1
+    kind: Config
+    clusters: []
+    contexts: []
+    current-context: ""
+    preferences: {}
+    users: []
+    EOF
+        # Set proper permissions for kubeconfig
+        chmod 600 "$KUBECONFIG_FILE"
+        print_success "Kubeconfig created with secure permissions (600)"
+    fi
+    
+    print_success "Kubernetes configuration files initialized"
 fi
-
-print_success "Kubernetes configuration files initialized"
 
 # ======================================================================
 # STEP 5: Optional - Local Kubernetes Cluster Setup
@@ -253,49 +255,51 @@ print_success "Kubernetes configuration files initialized"
 # Track k3s setup status for completion message
 K3S_SETUP_STATUS="not_available"
 
-if command -v k3sup >/dev/null 2>&1; then
-    print_step "Local Kubernetes cluster setup (optional)"
-    
-    setup_k3s=$(prompt_user "Would you like to setup a local k3s cluster?" "Y")
-    
-    if [[ "$setup_k3s" =~ ^[Yy]$ ]]; then
-        print_info "Setting up local k3s cluster..."
-
-        print_info "Using context name: local"
+if [ "$OS" != "Darwin" ]; then
+    if command -v k3sup >/dev/null 2>&1; then
+        print_step "Local Kubernetes cluster setup (optional)"
         
-        # Install k3s locally
-        print_info "Installing k3s cluster..."
-
-        if k3sup install \
-            --local \
-            --local-path "$HOME/.kube/config" \
-            --merge \
-            --context "local" \
-            --tls-san "$K3SUP_TLS_SAN"; then
-
-            print_success "Local k3s cluster installed successfully!"
-            print_info "Kubeconfig: $HOME/.kube/config"
+        setup_k3s=$(prompt_user "Would you like to setup a local k3s cluster?" "Y")
+        
+        if [[ "$setup_k3s" =~ ^[Yy]$ ]]; then
+            print_info "Setting up local k3s cluster..."
+    
+            print_info "Using context name: local"
             
-            # Wait for cluster to be ready
-            print_info "Waiting for cluster to be ready (this may take a minute)..."
-            if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config"; then
-                print_success "Cluster is ready!"
-                print_info "Cluster nodes:"
-                kubectl --context="local" --kubeconfig="$HOME/.kube/config" get nodes
-
-                K3S_SETUP_STATUS="installed"
+            # Install k3s locally
+            print_info "Installing k3s cluster..."
+    
+            if k3sup install \
+                --local \
+                --local-path "$HOME/.kube/config" \
+                --merge \
+                --context "local" \
+                --tls-san "$K3SUP_TLS_SAN"; then
+    
+                print_success "Local k3s cluster installed successfully!"
+                print_info "Kubeconfig: $HOME/.kube/config"
+                
+                # Wait for cluster to be ready
+                print_info "Waiting for cluster to be ready (this may take a minute)..."
+                if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config"; then
+                    print_success "Cluster is ready!"
+                    print_info "Cluster nodes:"
+                    kubectl --context="local" --kubeconfig="$HOME/.kube/config" get nodes
+    
+                    K3S_SETUP_STATUS="installed"
+                else
+                    print_warning "Cluster readiness check timed out or failed"
+                    print_info "You may need to wait a bit longer and check manually"
+                    K3S_SETUP_STATUS="installed_pending"
+                fi
             else
-                print_warning "Cluster readiness check timed out or failed"
-                print_info "You may need to wait a bit longer and check manually"
-                K3S_SETUP_STATUS="installed_pending"
+                print_error "Failed to install k3s cluster"
+                K3S_SETUP_STATUS="failed"
             fi
         else
-            print_error "Failed to install k3s cluster"
-            K3S_SETUP_STATUS="failed"
+            print_info "Skipping k3s cluster setup"
+            K3S_SETUP_STATUS="skipped"
         fi
-    else
-        print_info "Skipping k3s cluster setup"
-        K3S_SETUP_STATUS="skipped"
     fi
 fi
 
@@ -366,6 +370,9 @@ elif [ "$K3S_SETUP_STATUS" = "failed" ]; then
     echo -e "  ${RED}✗${RESET} Cluster installation failed"
     echo -e "  ${BLUE}•${RESET} Check logs: ${YELLOW}$LOG_FILE${RESET}"
     echo -e "  ${BLUE}•${RESET} Try again: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
+elif [ "$K3S_SETUP_STATUS" = "not_available" ]; then
+    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+    echo -e "  ${BLUE}•${RESET} Use Orbstack to spin up a local k8s cluster: ${YELLOW}open the app and select Kubernetes${RESET}"
 fi
 
 echo -e ""
