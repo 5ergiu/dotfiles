@@ -121,31 +121,27 @@ fi
 # STEP 2: Install packages via Homebrew
 # ============================================================================
 
-print_info "Installing packages via Homebrew Bundle..."
+print_step "Selecting Brewfile for $OS..."
 
-BREWFILE_PATH="$HOME/.config/yadm/Brewfile"
-
-if [ -f "$BREWFILE_PATH" ]; then
-    print_info "Found Brewfile at: $BREWFILE_PATH"
-    print_info "Installing packages (this may take a while)..."
-    
-    if [ "$OS" = "Darwin" ]; then
-        print_info "Running Homebrew Bundle with cask support (macOS)"
-        BUNDLE_CMD=(brew bundle --file="$BREWFILE_PATH" --no-upgrade)
-    else
-        print_info "Running Homebrew Bundle without casks (Linux/WSL)"
-        BUNDLE_CMD=(brew bundle --file="$BREWFILE_PATH" --no-upgrade --no-cask)
-    fi
-
-    if "${BUNDLE_CMD[@]}" 2>&1 | tee -a "$LOG_FILE"; then
-        print_success "All Brewfile packages installed successfully"
-    else
-        print_warning "Some packages failed to install, check the output above for details"
-        print_info "Continuing with bootstrap..."
-    fi
+if [ "$OS" = "Darwin" ]; then
+    BREWFILE_PATH="$HOME/.config/yadm/Brewfile.macos"
 else
-    print_error "Brewfile not found at $HOME/.config/yadm/Brewfile"
+    BREWFILE_PATH="$HOME/.config/yadm/Brewfile.linux"
+fi
+
+print_info "Using Brewfile: $BREWFILE_PATH"
+
+if [ ! -f "$BREWFILE_PATH" ]; then
+    print_error "Brewfile not found at: $BREWFILE_PATH"
     exit 1
+fi
+
+print_info "Running Homebrew Bundle..."
+if brew bundle --file="$BREWFILE_PATH" --no-upgrade 2>&1 | tee -a "$LOG_FILE"; then
+    print_success "All Brewfile packages installed successfully"
+else
+    print_warning "Some packages failed to install. Check the log above."
+    print_info "Continuing bootstrap..."
 fi
 
 # ============================================================================
