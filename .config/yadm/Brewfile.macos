@@ -1,5 +1,5 @@
 # ============================================================================
-# Homebrew Bundle File
+# Homebrew Bundle File (MacOS)
 # ============================================================================
 
 # Taps
@@ -11,9 +11,6 @@ brew "git"
 brew "gcc"
 brew "gnupg"
 brew "jq"
-
-# Shell
-brew "zsh"
 
 # Editors
 brew "neovim"
@@ -29,7 +26,6 @@ brew "pnpm"
 brew "ansible"
 brew "ansible-lint"
 brew "azure-cli"
-brew "docker"
 brew "opentofu"
 brew "hashicorp/tap/packer"
 brew "terraform"
@@ -41,7 +37,6 @@ brew "helmfile"
 brew "k3sup"
 brew "k9s"
 brew "kubectx"
-brew "lazydocker"
 
 # GitHub CLI
 brew "gh"
