@@ -36,37 +36,38 @@ K3SUP_TLS_SAN="127.0.0.1"
 K3S_SETUP_STATUS="not_available"
 
 # ============================================================================
-# LOGGING
+# HELPERS
 # ============================================================================
 
 log() { echo "[${TIMESTAMP}] $1" >> "$LOG_FILE"; }
 
-header() {
-    echo -e "\n${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_header() {
+    echo -e "\n${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
     echo -e "${BOLD}${CYAN}$1${RESET}"
-    echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
+    echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
     log "=== $1 ==="
 }
 
-success() { echo -e "${GREEN}✅ $1${RESET}"; log "SUCCESS: $1"; }
-info()    { echo -e "${BLUE}ℹ️ $1${RESET}"; log "INFO: $1"; }
-warn()    { echo -e "${YELLOW}⚠️ $1${RESET}"; log "WARNING: $1"; }
-error()   { echo -e "${RED}❌ $1${RESET}"; log "ERROR: $1"; }
-step()    { echo -e "${MAGENTA}🔧 $1${RESET}"; log "STEP: $1"; }
+print_success() { echo -e "${GREEN}✅ $1${RESET}"; log "SUCCESS: $1"; }
+print_info()    { echo -e "${BLUE}ℹ️ $1${RESET}"; log "INFO: $1"; }
+print_warn()    { echo -e "${YELLOW}⚠️ $1${RESET}"; log "WARNING: $1"; }
+print_error()   { echo -e "${RED}❌ $1${RESET}"; log "ERROR: $1"; }
+print_step()    { echo -e "${MAGENTA}🔧 $1${RESET}"; log "STEP: $1"; }
 
-prompt() {
-    local msg="$1"
-    local default="${2:-N}"
+prompt_user() {
+    local prompt_message="$1"
+    local default_response="${2:-N}"
+
     local response
-    read -rp "$(echo -e "${CYAN}${msg} (Y/N) [Default: $default]: ${RESET}")" response
-    echo "${response:-$default}"
+    read -rp "$(echo -e "${CYAN}${prompt_message} (Y/N) [Default: $default_response]: ${RESET}")" response
+    echo "${response:-$default_response}"
 }
 
 cleanup() {
     local code=$?
     if [ $code -ne 0 ]; then
-        error "Bootstrap failed with exit code $code"
-        info "Check log: $LOG_FILE"
+        print_error "Bootstrap failed with exit code $code"
+        print_info "Check log: $LOG_FILE"
     fi
 }
 trap cleanup EXIT
@@ -125,23 +126,23 @@ show_completion_summary() {
 # ============================================================================
 
 check_os() {
-    step "Verifying operating system..."
+    print_step "Verifying operating system..."
 
     OS=$(uname -s)
     ARCH=$(uname -m)
 
-    info "Operating System: $OS"
-    info "Architecture: $ARCH"
+    print_info "Operating System: $OS"
+    print_info "Architecture: $ARCH"
 
     if [[ "$OS" != "Darwin" && "$OS" != "Linux" ]]; then
-        error "Unsupported OS: $OS"
+        print_error "Unsupported OS: $OS"
         exit 1
     fi
 
     if [[ "$OS" = "Linux" ]] && grep -qi 'microsoft' /proc/version 2>/dev/null; then
         IS_WSL=true
         K3SUP_TLS_SAN=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1)
-        info "WSL environment detected"
+        print_info "WSL environment detected"
     fi
 }
 
@@ -150,7 +151,7 @@ check_os() {
 # ============================================================================
 
 install_brew_deps() {
-    step "Selecting Brewfile..."
+    print_step "Selecting Brewfile..."
 
     local brewfile
 
@@ -160,18 +161,18 @@ install_brew_deps() {
         brewfile="$HOME/.config/yadm/Brewfile.linux"
     fi
 
-    info "Using Brewfile: $brewfile"
+    print_info "Using Brewfile: $brewfile"
 
     if [[ ! -f "$brewfile" ]]; then
-        error "Brewfile not found!"
+        print_error "Brewfile not found!"
         exit 1
     fi
 
-    info "Installing Brewfile packages…"
+    print_info "Installing Brewfile packages…"
     if brew bundle --file="$brewfile" --no-upgrade 2>&1 | tee -a "$LOG_FILE"; then
-        success "Brewfile packages installed"
+        print_success "Brewfile packages installed"
     else
-        warn "Some Brew packages failed"
+        print_warn "Some Brew packages failed"
     fi
 }
 
@@ -180,41 +181,41 @@ install_brew_deps() {
 # ============================================================================
 
 setup_zsh() {
-    step "Configuring zsh shell…"
+    print_step "Configuring zsh shell…"
 
     local current=$(basename "$SHELL" || echo "unknown")
-    info "Current shell: $current"
+    print_info "Current shell: $current"
 
     if [[ "$current" != "zsh" ]]; then
-        warn "zsh is not default shell"
+        print_warn "zsh is not default shell"
 
         local zsh_path
         zsh_path=$(command -v zsh)
 
-        info "zsh path: $zsh_path"
+        print_info "zsh path: $zsh_path"
 
         if ! grep -q "^${zsh_path}$" /etc/shells 2>/dev/null; then
-            warn "Adding zsh to /etc/shells"
+            print_warn "Adding zsh to /etc/shells"
             echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
         fi
 
-        info "Changing default shell…"
+        print_info "Changing default shell…"
         if chsh -s "$zsh_path"; then
-            success "Default shell changed to zsh"
+            print_success "Default shell changed to zsh"
         else
-            error "Failed to change default shell"
+            print_error "Failed to change default shell"
             exit 1
         fi
     else
-        success "zsh is already default"
+        print_success "zsh is already default"
     fi
 
     if [[ ! -f "$HOME/.zshrc" ]]; then
-        error "~/.zshrc not found — is your dotfiles setup incomplete?"
+        print_error "~/.zshrc not found — is your dotfiles setup incomplete?"
         exit 1
     fi
 
-    success "zsh config OK"
+    print_success "zsh config OK"
 }
 
 # ============================================================================
@@ -224,7 +225,7 @@ setup_zsh() {
 setup_kube_config() {
     [[ "$OS" = "Darwin" ]] && return 0
 
-    step "Setting up Kubernetes configuration directory…"
+    print_step "Setting up Kubernetes configuration directory…"
 
     mkdir -p "$HOME/.kube"
 
@@ -232,11 +233,11 @@ setup_kube_config() {
 
     if [[ -f "$file" ]]; then
         local backup="$file.backup.$(date +%Y%m%d-%H%M%S)"
-        info "Backing up existing kubeconfig → $backup"
+        print_info "Backing up existing kubeconfig → $backup"
         cp "$file" "$backup"
     else
-        info "Creating default kubeconfig"
-        cat > "$file" << 'EOF'
+        print_info "Creating default kubeconfig"
+        /bin/cat > "$file" << 'EOF'
 apiVersion: v1
 kind: Config
 clusters: []
@@ -248,7 +249,7 @@ EOF
         chmod 600 "$file"
     fi
 
-    success "Kube config initialized"
+    print_success "Kube config initialized"
 }
 
 # ============================================================================
@@ -259,10 +260,10 @@ setup_k3s() {
     [[ "$OS" = "Darwin" ]] && return 0
     command -v k3sup >/dev/null || return 0
 
-    step "Local Kubernetes cluster setup (optional)"
+    print_step "Local Kubernetes cluster setup (optional)"
 
-    if [[ $(prompt "Install local k3s cluster?" "Y") =~ ^[Yy]$ ]]; then
-        info "Installing k3s…"
+    if [[ $(prompt_user "Install local k3s cluster?" "Y") =~ ^[Yy]$ ]]; then
+        print_info "Installing k3s…"
 
         if k3sup install \
             --local \
@@ -271,23 +272,23 @@ setup_k3s() {
             --context "local" \
             --tls-san "$K3SUP_TLS_SAN"; then
 
-            success "k3s installed"
+            print_success "k3s installed"
 
-            info "Checking cluster readiness…"
+            print_info "Checking cluster readiness…"
 
             if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config"; then
-                success "Cluster ready!"
+                print_success "Cluster ready!"
                 K3S_SETUP_STATUS="installed"
             else
-                warn "Cluster readiness timed out"
+                print_warn "Cluster readiness timed out"
                 K3S_SETUP_STATUS="installed_pending"
             fi
         else
-            error "k3s install failed"
+            print_error "k3s install failed"
             K3S_SETUP_STATUS="failed"
         fi
     else
-        info "Skipping k3s installation"
+        print_info "Skipping k3s installation"
         K3S_SETUP_STATUS="skipped"
     fi
 }
@@ -297,29 +298,29 @@ setup_k3s() {
 # ============================================================================
 
 decrypt_secrets() {
-    if [[ $(prompt "Decrypt yadm secrets?" "Y") =~ ^[Yy]$ ]]; then
-        step "Decrypting secrets…"
+    if [[ $(prompt_user "Decrypt yadm secrets?" "Y") =~ ^[Yy]$ ]]; then
+        print_step "Decrypting secrets…"
 
         if yadm decrypt; then
-            success "Secrets decrypted"
+            print_success "Secrets decrypted"
 
             local repo=$(yadm remote get-url origin 2>/dev/null || echo "")
 
             if [[ "$repo" =~ ^https:// ]]; then
-                if [[ $(prompt "Switch yadm to SSH remote?" "Y") =~ ^[Yy]$ ]]; then
+                if [[ $(prompt_user "Switch yadm to SSH remote?" "Y") =~ ^[Yy]$ ]]; then
                     local suggested=$(echo "$repo" | sed -E 's|https://([^/]+)/|git@\1:|')
                     read -rp "SSH URL (enter for suggested): " ssh
                     ssh="${ssh:-$suggested}"
                     yadm remote set-url origin "$ssh"
-                    success "Remote updated to SSH"
+                    print_success "Remote updated to SSH"
                 fi
             fi
 
         else
-            warn "Secret decryption failed"
+            print_warn "Secret decryption failed"
         fi
     else
-        info "Skipping secret decryption"
+        print_info "Skipping secret decryption"
     fi
 }
 
