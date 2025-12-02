@@ -50,7 +50,7 @@ print_header() {
 
 print_success() { echo -e "${GREEN}✅ $1${RESET}"; log "SUCCESS: $1"; }
 print_info()    { echo -e "${BLUE}ℹ️ $1${RESET}"; log "INFO: $1"; }
-print_warn()    { echo -e "${YELLOW}⚠️ $1${RESET}"; log "WARNING: $1"; }
+print_warning() { echo -e "${YELLOW}⚠️ $1${RESET}"; log "WARNING: $1"; }
 print_error()   { echo -e "${RED}❌ $1${RESET}"; log "ERROR: $1"; }
 print_step()    { echo -e "${MAGENTA}🔧 $1${RESET}"; log "STEP: $1"; }
 
@@ -172,7 +172,7 @@ install_brew_deps() {
     if brew bundle --file="$brewfile" --no-upgrade 2>&1 | tee -a "$LOG_FILE"; then
         print_success "Brewfile packages installed"
     else
-        print_warn "Some Brew packages failed"
+        print_warning "Some Brew packages failed"
     fi
 }
 
@@ -187,7 +187,7 @@ setup_zsh() {
     print_info "Current shell: $current"
 
     if [[ "$current" != "zsh" ]]; then
-        print_warn "zsh is not default shell"
+        print_warning "zsh is not default shell"
 
         local zsh_path
         zsh_path=$(command -v zsh)
@@ -195,7 +195,7 @@ setup_zsh() {
         print_info "zsh path: $zsh_path"
 
         if ! grep -q "^${zsh_path}$" /etc/shells 2>/dev/null; then
-            print_warn "Adding zsh to /etc/shells"
+            print_warning "Adding zsh to /etc/shells"
             echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
         fi
 
@@ -280,7 +280,7 @@ setup_k3s() {
                 print_success "Cluster ready!"
                 K3S_SETUP_STATUS="installed"
             else
-                print_warn "Cluster readiness timed out"
+                print_warning "Cluster readiness timed out"
                 K3S_SETUP_STATUS="installed_pending"
             fi
         else
@@ -317,7 +317,7 @@ decrypt_secrets() {
             fi
 
         else
-            print_warn "Secret decryption failed"
+            print_warning "Secret decryption failed"
         fi
     else
         print_info "Skipping secret decryption"
