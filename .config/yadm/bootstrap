@@ -9,7 +9,10 @@
 
 set -euo pipefail
 
-# Color definitions
+# ============================================================================
+# COLORS
+# ============================================================================
+
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
@@ -19,370 +22,324 @@ readonly CYAN='\033[0;36m'
 readonly BOLD='\033[1m'
 readonly RESET='\033[0m'
 
-# Log file
+# ============================================================================
+# GLOBALS
+# ============================================================================
+
 readonly LOG_FILE="$HOME/.config/yadm/bootstrap.log"
 readonly TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
+OS=""
+ARCH=""
+IS_WSL=false
+K3SUP_TLS_SAN="127.0.0.1"
+K3S_SETUP_STATUS="not_available"
+
 # ============================================================================
-# LOGGING FUNCTIONS
+# LOGGING
 # ============================================================================
 
-log() {
-    echo "[${TIMESTAMP}] $1" >> "$LOG_FILE"
-}
+log() { echo "[${TIMESTAMP}] $1" >> "$LOG_FILE"; }
 
-print_header() {
+header() {
     echo -e "\n${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
     echo -e "${BOLD}${CYAN}$1${RESET}"
     echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}\n"
     log "=== $1 ==="
 }
 
-print_success() {
-    echo -e "${GREEN}✅ $1${RESET}"
-    log "SUCCESS: $1"
+success() { echo -e "${GREEN}✅ $1${RESET}"; log "SUCCESS: $1"; }
+info()    { echo -e "${BLUE}ℹ️ $1${RESET}"; log "INFO: $1"; }
+warn()    { echo -e "${YELLOW}⚠️ $1${RESET}"; log "WARNING: $1"; }
+error()   { echo -e "${RED}❌ $1${RESET}"; log "ERROR: $1"; }
+step()    { echo -e "${MAGENTA}🔧 $1${RESET}"; log "STEP: $1"; }
+
+prompt() {
+    local msg="$1"
+    local default="${2:-N}"
+    local response
+    read -rp "$(echo -e "${CYAN}${msg} (Y/N) [Default: $default]: ${RESET}")" response
+    echo "${response:-$default}"
 }
 
-print_info() {
-    echo -e "${BLUE}ℹ️ $1${RESET}"
-    log "INFO: $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠️ $1${RESET}"
-    log "WARNING: $1"
-}
-
-print_error() {
-    echo -e "${RED}❌ $1${RESET}"
-    log "ERROR: $1"
-}
-
-print_step() {
-    echo -e "${MAGENTA}🔧 $1${RESET}"
-    log "STEP: $1"
-}
-
-# Cleanup function
 cleanup() {
-    local exit_code=$?
-    if [ $exit_code -ne 0 ]; then
-        print_error "Bootstrap failed with exit code $exit_code"
-        print_info "Check log file: $LOG_FILE"
+    local code=$?
+    if [ $code -ne 0 ]; then
+        error "Bootstrap failed with exit code $code"
+        info "Check log: $LOG_FILE"
     fi
 }
-
 trap cleanup EXIT
 
-# Prompt wrapper with default response
-prompt_user() {
-    local prompt_message="$1"
-    local default_response="${2:-N}"
-    
-    local response
-    read -rp "$(echo -e "${CYAN}${prompt_message} (Y/N) [Default: $default_response]: ${RESET}")" response
-    echo "${response:-$default_response}"
+show_completion_summary() {
+    print_header "🎉 Bootstrap Completed Successfully"
+
+    echo -e "${GREEN}All tasks finished without critical errors.${RESET}"
+    echo -e ""
+
+    # Kubernetes status summary
+    if [ "${K3S_SETUP_STATUS:-}" = "installed" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${GREEN}✓${RESET} Local k3s cluster is ready"
+        echo -e "  ${BLUE}•${RESET} Use ${YELLOW}kubectl --context=local${RESET} to interact with your cluster"
+        echo -e "  ${BLUE}•${RESET} Or switch context: ${YELLOW}kubectx local${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "installed_pending" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${YELLOW}⏳${RESET} Cluster installed but readiness check pending"
+        echo -e "  ${BLUE}•${RESET} Try manually: ${YELLOW}kubectl --context=local get nodes${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "skipped" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
+        echo -e "  ${BLUE}•${RESET} To install later: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "failed" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${RED}✗${RESET} Cluster installation failed"
+        echo -e "  ${BLUE}•${RESET} Check logs: ${YELLOW}$LOG_FILE${RESET}"
+        echo -e "  ${BLUE}•${RESET} Try again: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "not_available" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${BLUE}•${RESET} Use Orbstack to spin up a local k8s cluster: ${YELLOW}open the app and select Kubernetes${RESET}"
+    fi
+
+    echo -e ""
+    echo -e "${CYAN}📝 Next steps:${RESET}"
+    echo -e "  ${BLUE}*${RESET} Restart your shell in order for all changes to take effect"
+    echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
+
+    if [ "${IS_WSL:-false}" = true ] && [ "${K3S_SETUP_STATUS:-}" != "failed" ]; then
+        echo -e ""
+        echo -e "${CYAN}🖥️  Interacting with the Kubernetes cluster installed inside WSL on Windows Apps (Lens, etc.):${RESET}"
+        echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}mnt/c/Users/%USERNAME%/.kube/config${RESET}"
+        echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
+        echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to $K3SUP_TLS_SAN${RESET}"
+    fi
+
+    echo -e "\nFull log available at: ${CYAN}$LOG_FILE${RESET}"
 }
 
 # ============================================================================
-# MAIN BOOTSTRAP
+# STEP 1 — OS CHECK
 # ============================================================================
 
-print_header "🚀 YADM Bootstrap Starting"
+check_os() {
+    step "Verifying operating system..."
 
-echo "=== Bootstrap started at ${TIMESTAMP} ===" > "$LOG_FILE"
+    OS=$(uname -s)
+    ARCH=$(uname -m)
 
-# ============================================================================
-# STEP 1: OS Verification
-# ============================================================================
+    info "Operating System: $OS"
+    info "Architecture: $ARCH"
 
-print_step "Verifying operating system..."
-
-OS=$(uname -s)
-ARCH=$(uname -m)
-print_info "Operating System: $OS"
-print_info "Architecture: $ARCH"
-
-if [ "$OS" != "Darwin" ] && [ "$OS" != "Linux" ]; then
-    print_error "Unsupported OS: $OS. This bootstrap script only supports Linux and macOS."
-    exit 1
-fi
-
-# Detect if running in WSL
-IS_WSL=false
-K3SUP_TLS_SAN=127.0.0.1
-if [ "$OS" = "Linux" ] && [ -f /proc/version ] && grep -qi 'microsoft' /proc/version 2>/dev/null; then
-    IS_WSL=true
-    K3SUP_TLS_SAN=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1)
-    print_info "WSL environment detected"
-fi
-
-# ============================================================================
-# STEP 2: Install packages via Homebrew
-# ============================================================================
-
-print_step "Selecting Brewfile for $OS..."
-
-if [ "$OS" = "Darwin" ]; then
-    BREWFILE_PATH="$HOME/.config/yadm/Brewfile.macos"
-else
-    BREWFILE_PATH="$HOME/.config/yadm/Brewfile.linux"
-fi
-
-print_info "Using Brewfile: $BREWFILE_PATH"
-
-if [ ! -f "$BREWFILE_PATH" ]; then
-    print_error "Brewfile not found at: $BREWFILE_PATH"
-    exit 1
-fi
-
-print_info "Running Homebrew Bundle..."
-if brew bundle --file="$BREWFILE_PATH" --no-upgrade 2>&1 | tee -a "$LOG_FILE"; then
-    print_success "All Brewfile packages installed successfully"
-else
-    print_warning "Some packages failed to install. Check the log above."
-    print_info "Continuing bootstrap..."
-fi
-
-# ============================================================================
-# STEP 3: Zsh Installation and Setup
-# ============================================================================
-
-print_step "Shell configuration with zsh..."
-
-# Check if zsh is the default shell
-CURRENT_SHELL=$(basename "$SHELL" 2>/dev/null || echo "unknown")
-print_info "Current shell: $CURRENT_SHELL"
-
-if [ "$CURRENT_SHELL" != "zsh" ]; then
-    print_warning "zsh is not the default shell. Attempting to change default shell..."
-    
-    ZSH_PATH=$(command -v zsh)
-    print_info "zsh path: $ZSH_PATH"
-    
-    # Check if zsh is in /etc/shells
-    if ! grep -q "^${ZSH_PATH}$" /etc/shells 2>/dev/null; then
-        print_warning "Adding zsh to /etc/shells..."
-        if command -v sudo >/dev/null 2>&1; then
-            echo "$ZSH_PATH" | sudo tee -a /etc/shells >/dev/null
-        else
-            print_error "sudo not available. Cannot add zsh to /etc/shells"
-            exit 1
-        fi
+    if [[ "$OS" != "Darwin" && "$OS" != "Linux" ]]; then
+        error "Unsupported OS: $OS"
+        exit 1
     fi
 
-    # Change default shell
-    print_info "Attempting to change default shell to zsh..."
-    
+    if [[ "$OS" = "Linux" ]] && grep -qi 'microsoft' /proc/version 2>/dev/null; then
+        IS_WSL=true
+        K3SUP_TLS_SAN=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n1)
+        info "WSL environment detected"
+    fi
+}
+
+# ============================================================================
+# STEP 2 — BREWFILE
+# ============================================================================
+
+install_brew_deps() {
+    step "Selecting Brewfile..."
+
+    local brewfile
+
     if [ "$OS" = "Darwin" ]; then
-        if chsh -s "$ZSH_PATH"; then
-            print_success "Default shell changed to zsh"
-            print_warning "Please log out and log back in for the shell change to take effect"
+        brewfile="$HOME/.config/yadm/Brewfile.macos"
+    else
+        brewfile="$HOME/.config/yadm/Brewfile.linux"
+    fi
+
+    info "Using Brewfile: $brewfile"
+
+    if [[ ! -f "$brewfile" ]]; then
+        error "Brewfile not found!"
+        exit 1
+    fi
+
+    info "Installing Brewfile packages…"
+    if brew bundle --file="$brewfile" --no-upgrade 2>&1 | tee -a "$LOG_FILE"; then
+        success "Brewfile packages installed"
+    else
+        warn "Some Brew packages failed"
+    fi
+}
+
+# ============================================================================
+# STEP 3 — ZSH SETUP
+# ============================================================================
+
+setup_zsh() {
+    step "Configuring zsh shell…"
+
+    local current=$(basename "$SHELL" || echo "unknown")
+    info "Current shell: $current"
+
+    if [[ "$current" != "zsh" ]]; then
+        warn "zsh is not default shell"
+
+        local zsh_path
+        zsh_path=$(command -v zsh)
+
+        info "zsh path: $zsh_path"
+
+        if ! grep -q "^${zsh_path}$" /etc/shells 2>/dev/null; then
+            warn "Adding zsh to /etc/shells"
+            echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+        fi
+
+        info "Changing default shell…"
+        if chsh -s "$zsh_path"; then
+            success "Default shell changed to zsh"
         else
-            print_error "Failed to change default shell to zsh via usermod"
-            print_error "Please run manually: chsh -s $ZSH_PATH"
+            error "Failed to change default shell"
             exit 1
         fi
     else
-        if command -v sudo >/dev/null 2>&1 && sudo usermod -s "$ZSH_PATH" "$USER" 2>/dev/null; then
-            print_success "Default shell changed to zsh via usermod"
-            print_warning "Please log out and log back in for the shell change to take effect"
-        else
-            print_error "Failed to change default shell to zsh via usermod"
-            print_error "Please run manually: sudo usermod -s $ZSH_PATH $USER"
-            exit 1
-        fi
+        success "zsh is already default"
     fi
-else
-    print_success "zsh is already the default shell"
-fi
 
-# Verify zsh configuration exists
-if [ ! -f "$HOME/.zshrc" ]; then
-    print_error ".zshrc not found - zsh configuration is required"
-    print_error "Please ensure your dotfiles include .zshrc"
-    exit 1
-fi
+    if [[ ! -f "$HOME/.zshrc" ]]; then
+        error "~/.zshrc not found — is your dotfiles setup incomplete?"
+        exit 1
+    fi
 
-print_success "zsh configuration found"
+    success "zsh config OK"
+}
 
-# ======================================================================
-# STEP 4: Kubernetes Configuration Setup
-# ======================================================================
+# ============================================================================
+# STEP 4 — KUBECONFIG SETUP
+# ============================================================================
 
-if [ "$OS" != "Darwin" ]; then
-    print_step "Setting up Kubernetes configuration directory..."
-    
-    # Create .kube directory if it doesn't exist
+setup_kube_config() {
+    [[ "$OS" = "Darwin" ]] && return 0
+
+    step "Setting up Kubernetes configuration directory…"
+
     mkdir -p "$HOME/.kube"
-    print_success ".kube directory created"
-    
-    KUBECONFIG_FILE="$HOME/.kube/config"
-    
-    # If kubeconfig exists, back it up, if not, create placeholder
-    if [ -f "$KUBECONFIG_FILE" ]; then
-        print_info "Backing up existing kubeconfig..."
-        BACKUP_FILE="$KUBECONFIG_FILE.backup.$(date +%Y%m%d-%H%M%S)"
-        cp "$KUBECONFIG_FILE" "$BACKUP_FILE"
-        print_success "Backup created: $BACKUP_FILE"
+
+    local file="$HOME/.kube/config"
+
+    if [[ -f "$file" ]]; then
+        local backup="$file.backup.$(date +%Y%m%d-%H%M%S)"
+        info "Backing up existing kubeconfig → $backup"
+        cp "$file" "$backup"
     else
-        print_info "Creating placeholder kubeconfig: $KUBECONFIG_FILE"
-        /bin/cat > "$KUBECONFIG_FILE" << 'EOF'
-    apiVersion: v1
-    kind: Config
-    clusters: []
-    contexts: []
-    current-context: ""
-    preferences: {}
-    users: []
-    EOF
-        # Set proper permissions for kubeconfig
-        chmod 600 "$KUBECONFIG_FILE"
-        print_success "Kubeconfig created with secure permissions (600)"
+        info "Creating default kubeconfig"
+        cat > "$file" << 'EOF'
+apiVersion: v1
+kind: Config
+clusters: []
+contexts: []
+current-context: ""
+preferences: {}
+users: []
+EOF
+        chmod 600 "$file"
     fi
-    
-    print_success "Kubernetes configuration files initialized"
-fi
 
-# ======================================================================
-# STEP 5: Optional - Local Kubernetes Cluster Setup
-# ======================================================================
+    success "Kube config initialized"
+}
 
-# Track k3s setup status for completion message
-K3S_SETUP_STATUS="not_available"
+# ============================================================================
+# STEP 5 — K3S INSTALL
+# ============================================================================
 
-if [ "$OS" != "Darwin" ]; then
-    if command -v k3sup >/dev/null 2>&1; then
-        print_step "Local Kubernetes cluster setup (optional)"
-        
-        setup_k3s=$(prompt_user "Would you like to setup a local k3s cluster?" "Y")
-        
-        if [[ "$setup_k3s" =~ ^[Yy]$ ]]; then
-            print_info "Setting up local k3s cluster..."
-    
-            print_info "Using context name: local"
-            
-            # Install k3s locally
-            print_info "Installing k3s cluster..."
-    
-            if k3sup install \
-                --local \
-                --local-path "$HOME/.kube/config" \
-                --merge \
-                --context "local" \
-                --tls-san "$K3SUP_TLS_SAN"; then
-    
-                print_success "Local k3s cluster installed successfully!"
-                print_info "Kubeconfig: $HOME/.kube/config"
-                
-                # Wait for cluster to be ready
-                print_info "Waiting for cluster to be ready (this may take a minute)..."
-                if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config"; then
-                    print_success "Cluster is ready!"
-                    print_info "Cluster nodes:"
-                    kubectl --context="local" --kubeconfig="$HOME/.kube/config" get nodes
-    
-                    K3S_SETUP_STATUS="installed"
-                else
-                    print_warning "Cluster readiness check timed out or failed"
-                    print_info "You may need to wait a bit longer and check manually"
-                    K3S_SETUP_STATUS="installed_pending"
-                fi
+setup_k3s() {
+    [[ "$OS" = "Darwin" ]] && return 0
+    command -v k3sup >/dev/null || return 0
+
+    step "Local Kubernetes cluster setup (optional)"
+
+    if [[ $(prompt "Install local k3s cluster?" "Y") =~ ^[Yy]$ ]]; then
+        info "Installing k3s…"
+
+        if k3sup install \
+            --local \
+            --local-path "$HOME/.kube/config" \
+            --merge \
+            --context "local" \
+            --tls-san "$K3SUP_TLS_SAN"; then
+
+            success "k3s installed"
+
+            info "Checking cluster readiness…"
+
+            if k3sup ready --context="local" --kubeconfig="$HOME/.kube/config"; then
+                success "Cluster ready!"
+                K3S_SETUP_STATUS="installed"
             else
-                print_error "Failed to install k3s cluster"
-                K3S_SETUP_STATUS="failed"
+                warn "Cluster readiness timed out"
+                K3S_SETUP_STATUS="installed_pending"
             fi
         else
-            print_info "Skipping k3s cluster setup"
-            K3S_SETUP_STATUS="skipped"
-        fi
-    fi
-fi
-
-# =============================================================================
-# Step 6: Optional - Prompt to decrypt secrets
-# =============================================================================
-
-decrypt_choice=$(prompt_user "Do you want to decrypt your secrets now?" "Y")
-
-if [[ "$decrypt_choice" =~ ^[Yy]$ ]]; then
-    print_step "Decrypting secrets..."
-    if yadm decrypt; then
-        print_success "Secrets decrypted successfully!"
-
-        # Optionally switch remote to SSH (only if cloned via HTTPS)
-        if [[ "$GIT_REPO" =~ ^https:// ]]; then
-            ssh_choice=$(prompt_user "Do you want to switch your yadm repo remote to SSH?" "Y")
-            
-            if [[ "$ssh_choice" =~ ^[Yy]$ ]]; then
-                # Suggest SSH URL based on HTTPS URL (supports GitHub, GitLab, Bitbucket, etc.)
-                suggested_ssh=$(echo "$GIT_REPO" | sed -E 's|https://([^/]+)/|git@\1:|')
-                print_info "Suggested SSH URL: $suggested_ssh"
-                read -rp "$(echo -e "${CYAN}Enter your SSH URL (or press Enter to use suggested): ${RESET}")" ssh_url
-                ssh_url="${ssh_url:-$suggested_ssh}"
-                
-                if [[ -n "$ssh_url" ]]; then
-                    if yadm remote set-url origin "$ssh_url"; then
-                        print_success "yadm remote switched to SSH: $ssh_url"
-                    else
-                        print_error "Failed to switch remote to SSH"
-                    fi
-                else
-                    print_warning "No SSH URL provided. Skipping remote switch."
-                fi
-            fi
-        else
-            print_info "Repository already uses SSH or non-HTTPS protocol. No remote switch needed."
+            error "k3s install failed"
+            K3S_SETUP_STATUS="failed"
         fi
     else
-        print_warning "Secrets decryption failed. You can decrypt later with: yadm decrypt"
+        info "Skipping k3s installation"
+        K3S_SETUP_STATUS="skipped"
     fi
-else
-    print_info "Secrets decryption skipped. You can decrypt later with: yadm decrypt"
-fi
+}
 
 # ============================================================================
-# COMPLETION
+# STEP 6 — SECRET DECRYPTION
 # ============================================================================
 
-print_header "✨ Bootstrap Complete!"
+decrypt_secrets() {
+    if [[ $(prompt "Decrypt yadm secrets?" "Y") =~ ^[Yy]$ ]]; then
+        step "Decrypting secrets…"
 
-echo -e "${GREEN}${BOLD}All steps completed successfully!${RESET}\n"
+        if yadm decrypt; then
+            success "Secrets decrypted"
 
-if [ "$K3S_SETUP_STATUS" = "installed" ]; then
-    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-    echo -e "  ${GREEN}✓${RESET} Local k3s cluster is ready"
-    echo -e "  ${BLUE}•${RESET} Use ${YELLOW}kubectl --context=local${RESET} to interact with your cluster"
-    echo -e "  ${BLUE}•${RESET} Or switch context: ${YELLOW}kubectx local${RESET}"
-elif [ "$K3S_SETUP_STATUS" = "installed_pending" ]; then
-    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-    echo -e "  ${YELLOW}⏳${RESET} Cluster installed but readiness check pending"
-    echo -e "  ${BLUE}•${RESET} Try manually: ${YELLOW}kubectl --context=local get nodes${RESET}"
-elif [ "$K3S_SETUP_STATUS" = "skipped" ]; then
-    echo -e "${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
-    echo -e "  ${BLUE}•${RESET} To install later: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
-elif [ "$K3S_SETUP_STATUS" = "failed" ]; then
-    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-    echo -e "  ${RED}✗${RESET} Cluster installation failed"
-    echo -e "  ${BLUE}•${RESET} Check logs: ${YELLOW}$LOG_FILE${RESET}"
-    echo -e "  ${BLUE}•${RESET} Try again: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
-elif [ "$K3S_SETUP_STATUS" = "not_available" ]; then
-    echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-    echo -e "  ${BLUE}•${RESET} Use Orbstack to spin up a local k8s cluster: ${YELLOW}open the app and select Kubernetes${RESET}"
-fi
+            local repo=$(yadm remote get-url origin 2>/dev/null || echo "")
 
-echo -e ""
-echo -e "${CYAN}📝 Next steps:${RESET}"
-echo -e "  ${BLUE}*${RESET} Restart your shell in order for all changes to take effect"
-echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
+            if [[ "$repo" =~ ^https:// ]]; then
+                if [[ $(prompt "Switch yadm to SSH remote?" "Y") =~ ^[Yy]$ ]]; then
+                    local suggested=$(echo "$repo" | sed -E 's|https://([^/]+)/|git@\1:|')
+                    read -rp "SSH URL (enter for suggested): " ssh
+                    ssh="${ssh:-$suggested}"
+                    yadm remote set-url origin "$ssh"
+                    success "Remote updated to SSH"
+                fi
+            fi
 
-if [ "$IS_WSL" = true ] && [ "$K3S_SETUP_STATUS" != "failed" ]; then
-    echo -e ""
-    echo -e "${CYAN}🖥️  Interacting with the Kubernetes cluster installed inside WSL on Windows Apps (Lens, etc.):${RESET}"
-    echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}mnt/c/Users/%USERNAME%/.kube/config${RESET}"
-    echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
-    echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to $K3SUP_TLS_SAN${RESET}"
-fi
+        else
+            warn "Secret decryption failed"
+        fi
+    else
+        info "Skipping secret decryption"
+    fi
+}
 
-echo ""
-echo -e "${CYAN}🎉 Happy coding!${RESET}\n"
+# ============================================================================
+# MAIN
+# ============================================================================
+
+main() {
+    header "🚀 YADM Bootstrap Starting"
+
+    echo "=== Bootstrap started at ${TIMESTAMP} ===" > "$LOG_FILE"
+
+    check_os
+    install_brew_deps
+    setup_zsh
+    setup_kube_config
+    setup_k3s
+    decrypt_secrets
+
+    show_completion_summary
+}
+
+main "$@"
