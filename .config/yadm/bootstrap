@@ -72,55 +72,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-show_completion_summary() {
-    print_header "🎉 Bootstrap Completed Successfully"
-
-    echo -e "${GREEN}All tasks finished without critical errors.${RESET}"
-    echo -e ""
-
-    # Kubernetes status summary
-    if [ "${K3S_SETUP_STATUS:-}" = "installed" ]; then
-        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-        echo -e "  ${GREEN}✓${RESET} Local k3s cluster is ready"
-        echo -e "  ${BLUE}•${RESET} Use ${YELLOW}kubectl --context=local${RESET} to interact with your cluster"
-        echo -e "  ${BLUE}•${RESET} Or switch context: ${YELLOW}kubectx local${RESET}"
-
-    elif [ "${K3S_SETUP_STATUS:-}" = "installed_pending" ]; then
-        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-        echo -e "  ${YELLOW}⏳${RESET} Cluster installed but readiness check pending"
-        echo -e "  ${BLUE}•${RESET} Try manually: ${YELLOW}kubectl --context=local get nodes${RESET}"
-
-    elif [ "${K3S_SETUP_STATUS:-}" = "skipped" ]; then
-        echo -e "${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
-        echo -e "  ${BLUE}•${RESET} To install later: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
-
-    elif [ "${K3S_SETUP_STATUS:-}" = "failed" ]; then
-        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-        echo -e "  ${RED}✗${RESET} Cluster installation failed"
-        echo -e "  ${BLUE}•${RESET} Check logs: ${YELLOW}$LOG_FILE${RESET}"
-        echo -e "  ${BLUE}•${RESET} Try again: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
-
-    elif [ "${K3S_SETUP_STATUS:-}" = "not_available" ]; then
-        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
-        echo -e "  ${BLUE}•${RESET} Use Orbstack to spin up a local k8s cluster: ${YELLOW}open the app and select Kubernetes${RESET}"
-    fi
-
-    echo -e ""
-    echo -e "${CYAN}📝 Next steps:${RESET}"
-    echo -e "  ${BLUE}*${RESET} Restart your shell in order for all changes to take effect"
-    echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
-
-    if [ "${IS_WSL:-false}" = true ] && [ "${K3S_SETUP_STATUS:-}" != "failed" ]; then
-        echo -e ""
-        echo -e "${CYAN}🖥️  Interacting with the Kubernetes cluster installed inside WSL on Windows Apps (Lens, etc.):${RESET}"
-        echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}mnt/c/Users/%USERNAME%/.kube/config${RESET}"
-        echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
-        echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to $K3SUP_TLS_SAN${RESET}"
-    fi
-
-    echo -e "\nFull log available at: ${CYAN}$LOG_FILE${RESET}"
-}
-
 # ============================================================================
 # OS CHECK
 # ============================================================================
@@ -345,6 +296,59 @@ decrypt_secrets() {
     else
         print_info "Skipping secret decryption"
     fi
+}
+
+# ============================================================================
+# COMPLETION
+# ============================================================================
+
+show_completion_summary() {
+    print_header "🎉 Bootstrap Completed Successfully"
+
+    echo -e "${GREEN}All tasks finished without critical errors.${RESET}"
+    echo -e ""
+
+    # Kubernetes status summary
+    if [ "${K3S_SETUP_STATUS:-}" = "installed" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${GREEN}✓${RESET} Local k3s cluster is ready"
+        echo -e "  ${BLUE}•${RESET} Use ${YELLOW}kubectl --context=local${RESET} to interact with your cluster"
+        echo -e "  ${BLUE}•${RESET} Or switch context: ${YELLOW}kubectx local${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "installed_pending" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${YELLOW}⏳${RESET} Cluster installed but readiness check pending"
+        echo -e "  ${BLUE}•${RESET} Try manually: ${YELLOW}kubectl --context=local get nodes${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "skipped" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster setup (optional):${RESET}"
+        echo -e "  ${BLUE}•${RESET} To install later: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "failed" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${RED}✗${RESET} Cluster installation failed"
+        echo -e "  ${BLUE}•${RESET} Check logs: ${YELLOW}$LOG_FILE${RESET}"
+        echo -e "  ${BLUE}•${RESET} Try again: ${YELLOW}k3sup install --local --local-path ~/.kube/config --merge --context local${RESET}"
+
+    elif [ "${K3S_SETUP_STATUS:-}" = "not_available" ]; then
+        echo -e "${CYAN}☸️  Kubernetes cluster:${RESET}"
+        echo -e "  ${BLUE}•${RESET} Use Orbstack to spin up a local k8s cluster: ${YELLOW}open the app and select Kubernetes${RESET}"
+    fi
+
+    echo -e ""
+    echo -e "${CYAN}📝 Next steps:${RESET}"
+    echo -e "  ${BLUE}*${RESET} Restart your shell in order for all changes to take effect"
+    echo -e "  ${BLUE}*${RESET} Type ${YELLOW}help${RESET} to see available commands (if aliases are configured)"
+
+    if [ "${IS_WSL:-false}" = true ] && [ "${K3S_SETUP_STATUS:-}" != "failed" ]; then
+        echo -e ""
+        echo -e "${CYAN}🖥️  Interacting with the Kubernetes cluster installed inside WSL on Windows Apps (Lens, etc.):${RESET}"
+        echo -e "  ${BLUE}•${RESET} Create/edit Windows Kubeconfig: ${YELLOW}mnt/c/Users/%USERNAME%/.kube/config${RESET}"
+        echo -e "  ${BLUE}•${RESET} The cluster is accessible from Windows via WSL IP"
+        echo -e "  ${BLUE}•${RESET} Update the cluster's server IP to $K3SUP_TLS_SAN${RESET}"
+    fi
+
+    echo -e "\nFull log available at: ${CYAN}$LOG_FILE${RESET}"
 }
 
 # ============================================================================
