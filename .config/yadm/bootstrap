@@ -310,15 +310,25 @@ decrypt_secrets() {
             if [[ "$repo" =~ ^https:// ]]; then
                 if [[ $(prompt_user "Switch yadm to SSH remote?" "Y") =~ ^[Yy]$ ]]; then
                     local suggested=$(echo "$repo" | sed -E 's|https://([^/]+)/|git@\1:|')
-                    read -rp "SSH URL (enter for suggested): " ssh
+                    print_info "Suggested SSH URL: $suggested"
+                    read -rp "$(echo -e "${CYAN}Enter your SSH URL (or press Enter to use suggested): ${RESET}")" ssh
                     ssh="${ssh:-$suggested}"
-                    yadm remote set-url origin "$ssh"
-                    print_success "Remote updated to SSH"
-                fi
-            fi
 
+                    if [[ -n "$ssh" ]]; then
+                        if yadm remote set-url origin "$ssh"; then
+                            print_success "yadm remote switched to SSH: $ssh"
+                        else
+                            print_error "Failed to switch remote to SSH"
+                        fi
+                    else
+                        print_warning "No SSH URL provided. Skipping remote switch."
+                    fi
+                fi
+            else
+                print_info "Repository already uses SSH or non-HTTPS protocol. No remote switch needed."
+            fi
         else
-            print_warning "Secret decryption failed"
+            print_warning "Secrets decryption skipped. You can decrypt later with: yadm decrypt"
         fi
     else
         print_info "Skipping secret decryption"
