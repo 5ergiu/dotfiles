@@ -50,7 +50,7 @@ print_header() {
 
 print_success() { echo -e "${GREEN}✅ $1${RESET}"; log "SUCCESS: $1"; }
 print_info()    { echo -e "${BLUE}ℹ️  $1${RESET}"; log "INFO: $1"; }
-print_warning() { echo -e "${YELLOW}⚠️ $1${RESET}"; log "WARNING: $1"; }
+print_warning() { echo -e "${YELLOW}⚠️  $1${RESET}"; log "WARNING: $1"; }
 print_error()   { echo -e "${RED}❌ $1${RESET}"; log "ERROR: $1"; }
 print_step()    { echo -e "${MAGENTA}🔧 $1${RESET}"; log "STEP: $1"; }
 
