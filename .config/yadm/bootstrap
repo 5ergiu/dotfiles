@@ -187,7 +187,7 @@ setup_zsh() {
     print_info "Current shell: $current"
 
     if [[ "$current" != "zsh" ]]; then
-        print_warning "zsh is not default shell"
+        print_warning "zsh is not the default shell. Attempting to change default shell..."
 
         local zsh_path
         zsh_path=$(command -v zsh)
@@ -200,11 +200,23 @@ setup_zsh() {
         fi
 
         print_info "Changing default shell…"
-        if chsh -s "$zsh_path"; then
-            print_success "Default shell changed to zsh"
+        if [ "$OS" = "Darwin" ]; then
+            if chsh -s "$ZSH_PATH"; then
+                print_success "Default shell changed to zsh"
+                print_warning "Please log out and log back in for the shell change to take effect"
+            else
+                print_error "Failed to change default shell to zsh via usermod"
+                print_error "Please run manually: chsh -s $ZSH_PATH"
+                exit 1
+            fi
         else
-            print_error "Failed to change default shell"
-            exit 1
+            if sudo usermod -s "$ZSH_PATH" "$USER" 2>/dev/null; then
+                print_success "Default shell changed to zsh via usermod"
+                print_warning "Please log out and log back in for the shell change to take effect"
+            else
+                print_error "Failed to change default shell to zsh via usermod"
+                exit 1
+            fi
         fi
     else
         print_success "zsh is already default"
