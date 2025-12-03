@@ -330,7 +330,7 @@ decrypt_secrets() {
 # ============================================================================
 
 main() {
-    header "🚀 YADM Bootstrap Starting"
+    print_header "🚀 YADM Bootstrap Starting"
 
     echo "=== Bootstrap started at ${TIMESTAMP} ===" > "$LOG_FILE"
 
