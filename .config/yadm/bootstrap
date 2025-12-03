@@ -270,7 +270,7 @@ install_k3s() {
             --local-path "$HOME/.kube/config" \
             --merge \
             --context "local" \
-            --server-extra-args "--disable traefik --disable metrics-server" \
+            --k3s-extra-args "--disable traefik --disable metrics-server" \
             --tls-san "$K3SUP_TLS_SAN"; then
 
             print_success "k3s installed"
