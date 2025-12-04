@@ -11,6 +11,7 @@ brew "git"
 brew "gcc"
 brew "gnupg"
 brew "jq"
+brew "yq"
 
 # Shell
 brew "zsh"
