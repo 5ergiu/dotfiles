@@ -5,3 +5,10 @@
 [user]
 	email = sergiu.a.bugeac@gmail.com
 	name = 5ergiu
+	signingkey = ~/.ssh/id_rsa.pub
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
