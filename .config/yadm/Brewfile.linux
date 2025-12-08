@@ -45,6 +45,7 @@ brew "kubernetes-cli"
 brew "lazydocker"
 
 # Git tools
+brew "czg"
 brew "gh"
 brew "git-cliff"
 brew "lefthook"
