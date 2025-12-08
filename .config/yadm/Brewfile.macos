@@ -40,8 +40,10 @@ brew "k9s"
 brew "kubectx"
 brew "kubernetes-cli"
 
-# GitHub CLI
+# Git tools
 brew "gh"
+brew "git-cliff"
+brew "lefthook"
 
 # CLI tools
 brew "bat"
@@ -55,8 +57,8 @@ brew "superfile"
 brew "zoxide"
 
 # Cask tools
-cask "alt-tab"
 cask "discord"
+cask "dockdoor"
 cask "firefox"
 cask "font-hack-nerd-font"
 cask "google-chrome"
