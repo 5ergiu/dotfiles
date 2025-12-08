@@ -41,6 +41,7 @@ brew "kubectx"
 brew "kubernetes-cli"
 
 # Git tools
+brew "czg"
 brew "gh"
 brew "git-cliff"
 brew "lefthook"
