@@ -44,8 +44,10 @@ brew "kubectx"
 brew "kubernetes-cli"
 brew "lazydocker"
 
-# GitHub CLI
+# Git tools
 brew "gh"
+brew "git-cliff"
+brew "lefthook"
 
 # CLI tools
 brew "bat"
