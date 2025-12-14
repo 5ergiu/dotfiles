@@ -29,6 +29,7 @@ brew "ansible-lint"
 brew "azure-cli"
 brew "cosign"
 brew "hashicorp/tap/packer"
+brew "kind"
 brew "opentofu"
 brew "terraform"
 
