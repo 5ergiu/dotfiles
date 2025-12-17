@@ -39,9 +39,6 @@ alias tree='eza --icons --git --tree'
 alias cat='bat --paging=never'
 alias less='bat --paging=always'
 
-# Fd (find replacement)
-alias find='fd'
-
 # Ansible
 alias a='ansible'
 alias al='ansible-lint'
